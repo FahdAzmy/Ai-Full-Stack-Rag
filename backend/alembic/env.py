@@ -11,7 +11,7 @@ from src.models.db_scheams.user import User
 from src.models.db_scheams.Chat import *
 from src.models.db_scheams.Message import *
 from src.models.db_scheams.document import *
-from src.models.db_scheams.DocumeCnthunk import *
+from src.models.db_scheams.DocumentChunk import *
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.

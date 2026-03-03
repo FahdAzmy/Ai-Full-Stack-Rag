@@ -25,7 +25,7 @@ from sqlalchemy import text
 from src.helpers.db import Base
 from src.models.db_scheams.user import User  # noqa: F401
 from src.models.db_scheams.document import Document  # noqa: F401
-from src.models.db_scheams.DocumeCnthunk import DocumentChunk  # noqa: F401
+from src.models.db_scheams.DocumentChunk import DocumentChunk  # noqa: F401
 from src.models.db_scheams.Chat import Chat  # noqa: F401
 from src.models.db_scheams.Message import Message  # noqa: F401
 

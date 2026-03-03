@@ -17,6 +17,8 @@ from src.helpers.config import settings
 
 # Import models to register them with Base.metadata
 from src.models.db_scheams.user import User  # noqa: F401
+from src.models.db_scheams.document import Document  # noqa: F401
+from src.models.db_scheams.DocumentChunk import DocumentChunk  # noqa: F401
 
 
 # Create test engine using the same database
@@ -45,8 +47,10 @@ async def setup_database():
     async with test_engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
     yield
-    # Clean up users table after each test for isolation
+    # Clean up tables after each test for isolation (order matters: FK constraints)
     async with test_engine.begin() as conn:
+        await conn.execute(text("DELETE FROM document_chunks"))
+        await conn.execute(text("DELETE FROM documents"))
         await conn.execute(text("DELETE FROM users"))
 
 

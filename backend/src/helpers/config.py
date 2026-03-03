@@ -37,6 +37,14 @@ class Settings(BaseSettings):
 
     CORS_ORIGINS: str
 
+    # Supabase (used for Auth + Storage)
+    SUPABASE_URL: str = ""
+    SUPABASE_SERVICE_KEY: str = ""
+
+    # Document Storage (SPEC-02)
+    STORAGE_BUCKET: str = "documents"
+    MAX_FILE_SIZE_MB: int = 50
+
     def get_database_url(self) -> str:
         # If DATABASE_URL is provided in .env, use it (and make sure it uses asyncpg)
         if self.DATABASE_URL:
