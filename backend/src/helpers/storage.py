@@ -7,14 +7,13 @@ All operations use the Service Role Key — the frontend never accesses storage 
 
 import traceback
 
-from supabase import create_client
-
 from src.helpers.config import settings
 from src.helpers.logging_config import get_logger
 
 logger = get_logger("helpers.storage")
 
-# Lazy-init the Supabase client (import is at top, but client is created on first use)
+# Lazy-init: import + client creation deferred to first use.
+# This allows tests to mock `storage` without needing supabase installed.
 _client = None
 
 
@@ -22,6 +21,8 @@ def _get_client():
     """Get or create the Supabase client (lazy singleton)."""
     global _client
     if _client is None:
+        from supabase import create_client
+
         logger.info("Initializing Supabase client for URL=%s", settings.SUPABASE_URL)
         try:
             _client = create_client(
@@ -39,18 +40,7 @@ def _get_client():
 
 
 def upload(file_content: bytes, storage_path: str) -> str:
-    """Upload a file to Supabase Storage.
-
-    Args:
-        file_content: The raw file bytes.
-        storage_path: Object path inside the bucket, e.g. '{user_id}/{doc_id}.pdf'
-
-    Returns:
-        The storage path on success.
-
-    Raises:
-        Exception: If the upload fails.
-    """
+    """Upload a file to Supabase Storage."""
     client = _get_client()
     bucket = settings.STORAGE_BUCKET
 

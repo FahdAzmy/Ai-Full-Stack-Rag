@@ -10,7 +10,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func
 
 from src.models.db_scheams.document import Document
-from src.models.db_scheams.DocumeCnthunk import DocumentChunk
+from src.models.db_scheams.DocumentChunk import DocumentChunk
 from src.models.schemas.document_schemas import (
     DocumentUploadResponse,
     DocumentListItem,

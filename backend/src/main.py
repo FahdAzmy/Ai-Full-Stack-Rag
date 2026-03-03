@@ -16,7 +16,7 @@ from src.helpers.logging_config import get_logger, sanitize_headers, generate_re
 # Import models to register them with Base.metadata
 from src.models.db_scheams.user import User  # noqa: F401
 from src.models.db_scheams.document import Document  # noqa: F401
-from src.models.db_scheams.DocumeCnthunk import DocumentChunk  # noqa: F401
+from src.models.db_scheams.DocumentChunk import DocumentChunk  # noqa: F401
 
 logger = get_logger("app")
 

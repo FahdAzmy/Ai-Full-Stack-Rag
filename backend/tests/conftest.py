@@ -18,7 +18,7 @@ from src.helpers.config import settings
 # Import models to register them with Base.metadata
 from src.models.db_scheams.user import User  # noqa: F401
 from src.models.db_scheams.document import Document  # noqa: F401
-from src.models.db_scheams.DocumeCnthunk import DocumentChunk  # noqa: F401
+from src.models.db_scheams.DocumentChunk import DocumentChunk  # noqa: F401
 
 
 # Create test engine using the same database
