@@ -1,6 +1,6 @@
 # SPEC-02: Document Upload & Management
 
-> **Status:** 🔲 Todo  
+> **Status:** ✅ Done  
 > **Dependencies:** SPEC-01 (Auth) ✅  
 > **Priority:** P0 — Critical Path  
 > **Estimated effort:** 3–4 days
@@ -9,7 +9,9 @@
 
 ## Overview
 
-Allow authenticated users to upload PDF research papers, store them on the server, track their processing status, and manage (list, view, delete) their document library. This spec covers **only the upload and CRUD operations** — the actual PDF processing (text extraction, chunking, embedding) is handled by SPEC-03.
+Allow authenticated users to upload PDF research papers, store them in **Supabase Storage**, track their processing status, and manage (list, view, delete) their document library. This spec covers **only the upload and CRUD operations** — the actual PDF processing (text extraction, chunking, embedding) is handled by SPEC-03.
+
+> **Storage Strategy:** Files are stored in a **private Supabase Storage bucket** (`documents`). All operations go through the backend using the Supabase **Service Role Key** — the frontend never accesses storage directly. This approach is chosen because the project already uses Supabase for authentication, and cloud storage avoids deployment issues with local filesystems.
 
 ---
 
@@ -26,7 +28,7 @@ Add metadata columns needed for citation generation (SPEC-06):
 | `id` | UUID | PK, default uuid4 | ❌ | Primary key |
 | `user_id` | UUID | FK → users.id, NOT NULL | ❌ | Owner |
 | `file_name` | String(255) | NOT NULL | ❌ | Original filename |
-| `file_path` | String(500) | NOT NULL | ❌ | Server storage path |
+| `file_path` | String(500) | NOT NULL | ❌ | Supabase Storage object path (e.g. `{user_id}/{document_id}.pdf`) |
 | `file_size` | Integer | nullable | ✅ | File size in bytes |
 | `total_pages` | Integer | nullable | ❌ | Total PDF pages |
 | `title` | String(500) | nullable | ✅ | Paper title (from metadata or user) |
@@ -169,11 +171,13 @@ Upload a PDF file.
 | 400 | Too large | `{"detail": "File too large. Maximum size is 50MB. Got: 67.3MB"}` |
 | 400 | Empty file | `{"detail": "Uploaded file is empty"}` |
 | 401 | No auth | `{"detail": "Not authenticated"}` |
+| 500 | Storage error | `{"detail": "Failed to upload file to storage"}` |
 
 **Side Effects:**
-1. File saved to `uploads/{user_id}/{document_id}.pdf`
-2. Document record created in DB with status `"processing"`
+1. File uploaded to Supabase Storage bucket `documents` at path `{user_id}/{document_id}.pdf`
+2. Document record created in DB with `file_path` = `{user_id}/{document_id}.pdf` and status `"processing"`
 3. Ingestion task triggered (SPEC-03) — in v1 this is synchronous, in SPEC-08 it becomes async via Celery
+4. If storage upload fails after DB record is created, record is cleaned up and error is returned
 
 ---
 
@@ -287,7 +291,7 @@ All fields are optional — only provided fields are updated.
 
 ### `DELETE /documents/{document_id}`
 
-Delete a document, its file from disk, and all associated chunks.
+Delete a document, its file from Supabase Storage, and all associated chunks.
 
 **Success Response (200):**
 ```json
@@ -297,9 +301,10 @@ Delete a document, its file from disk, and all associated chunks.
 ```
 
 **Side Effects:**
-1. Delete PDF file from `uploads/{user_id}/{document_id}.pdf`
+1. Delete PDF file from Supabase Storage bucket `documents` at path `{user_id}/{document_id}.pdf`
 2. Delete all `document_chunks` where `document_id` matches (cascade)
 3. Delete the `documents` record
+4. If storage deletion fails, log a warning but still delete DB records (orphaned files can be cleaned up later)
 
 **Error Responses:**
 
@@ -319,16 +324,16 @@ Delete a document, its file from disk, and all associated chunks.
 | `src/routes/document_routes.py` | Document API endpoints |
 | `src/controllers/document_controller.py` | Document business logic |
 | `src/models/schemas/document_schemas.py` | Pydantic request/response models |
+| `src/helpers/storage.py` | Supabase Storage helper (upload, download, delete, signed URL) |
 
 ### Files to Modify
 
 | File | Change |
 |---|---|
 | `src/models/db_scheams/document.py` | Add metadata columns (title, author, year, journal, doi, abstract, file_size, error_message) |
-| `src/helpers/config.py` | Add `UPLOAD_DIR`, `MAX_FILE_SIZE_MB` settings |
+| `src/helpers/config.py` | Add `STORAGE_BUCKET`, `MAX_FILE_SIZE_MB` settings |
 | `src/main.py` | Register document routes: `app.include_router(document_router)` |
-| `.env` | Add `UPLOAD_DIR=uploads` and `MAX_FILE_SIZE_MB=50` |
-| `.gitignore` | Add `uploads/` directory |
+| `.env` | Add `STORAGE_BUCKET=documents` and `MAX_FILE_SIZE_MB=50` |
 
 ---
 
@@ -337,33 +342,37 @@ Delete a document, its file from disk, and all associated chunks.
 **File:** `src/helpers/config.py` — add to `Settings` class:
 
 ```python
-# File Storage
-UPLOAD_DIR: str = "uploads"
+# Supabase Storage
+STORAGE_BUCKET: str = "documents"
 MAX_FILE_SIZE_MB: int = 50
 ```
+
+> **Note:** `SUPABASE_URL` and `SUPABASE_SERVICE_KEY` should already exist in the config from SPEC-01 (Auth). These same credentials are reused for Storage operations.
 
 ---
 
 ## Business Rules
 
-1. **File isolation:** Each user's files are stored in `uploads/{user_id}/`. Users cannot access other users' files.
-2. **Unique file storage:** Files are renamed to `{document_id}.pdf` to avoid name collisions.
-3. **Status transitions:** Only valid transitions are:
+1. **File isolation:** Each user's files are stored under `{user_id}/` prefix in the Supabase Storage bucket. Users cannot access other users' files.
+2. **Unique file storage:** Files are stored as `{user_id}/{document_id}.pdf` to avoid name collisions.
+3. **Private bucket:** The `documents` bucket is **private** — no public access. All access goes through the backend using the Service Role Key.
+4. **Status transitions:** Only valid transitions are:
    - `uploading` → `processing` (triggered by ingestion start)
    - `processing` → `ready` (ingestion complete)
    - `processing` → `failed` (ingestion error)
-4. **Cascade delete:** Deleting a document deletes all its chunks from `document_chunks`.
-5. **Metadata is optional:** Users can upload without providing metadata. The system will attempt to extract it from the PDF in SPEC-03, and users can manually edit it via PATCH.
+5. **Cascade delete:** Deleting a document deletes all its chunks from `document_chunks`.
+6. **Metadata is optional:** Users can upload without providing metadata. The system will attempt to extract it from the PDF in SPEC-03, and users can manually edit it via PATCH.
+7. **Storage cleanup:** If storage upload fails, the DB record is rolled back. If storage delete fails on document deletion, the DB records are still deleted (orphaned storage files are acceptable and can be cleaned up periodically).
 
 ---
 
 ## Dependencies (packages)
 
 Already in `requirements.txt`:
-- `aiofiles` — async file writing
 - `python-multipart` — multipart form data parsing
+- `supabase` — Supabase Python client (used for Auth in SPEC-01)
 
-No new packages needed for this spec.
+No new packages needed for this spec — the `supabase` client already includes Storage support.
 
 ---
 
@@ -389,7 +398,7 @@ No new packages needed for this spec.
 
 ## Acceptance Criteria
 
-- [ ] `POST /documents/upload` accepts PDF files and saves to disk
+- [ ] `POST /documents/upload` accepts PDF files and uploads to Supabase Storage
 - [ ] Non-PDF files are rejected with clear error message
 - [ ] Files exceeding 50MB are rejected
 - [ ] Empty files are rejected
@@ -397,8 +406,9 @@ No new packages needed for this spec.
 - [ ] `GET /documents/` returns all user's documents
 - [ ] `GET /documents/{id}` returns full document details
 - [ ] `PATCH /documents/{id}` allows updating metadata
-- [ ] `DELETE /documents/{id}` removes file, DB record, and chunks
+- [ ] `DELETE /documents/{id}` removes file from Supabase Storage, DB record, and chunks
 - [ ] Users cannot access other users' documents (403)
-- [ ] `uploads/` directory is created automatically if missing
-- [ ] File is stored as `uploads/{user_id}/{document_id}.pdf`
+- [ ] Supabase Storage bucket `documents` is configured as private
+- [ ] File is stored in Supabase Storage as `{user_id}/{document_id}.pdf`
 - [ ] All endpoints require authentication
+- [ ] Storage upload failures are handled gracefully with DB rollback
