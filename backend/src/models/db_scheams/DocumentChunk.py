@@ -22,6 +22,7 @@ class DocumentChunk(Base):
 
     content = Column(Text, nullable=False)
     page_number = Column(Integer, nullable=True)
+    chunk_index = Column(Integer, nullable=False, default=0)
 
     # لو بتستخدم text-embedding-3-small
     embedding = Column(Vector(1536))

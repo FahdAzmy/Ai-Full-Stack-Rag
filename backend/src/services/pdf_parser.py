@@ -2,8 +2,49 @@
 PDF Parser — Extract text and metadata from PDF files using PyMuPDF.
 """
 
+import os
 import re
 import fitz  # PyMuPDF
+
+# ── Safety limits ────────────────────────────────────────────────────────────
+MAX_PDF_PAGES = 1000
+MAX_PDF_SIZE_MB = 20
+
+
+def _validate_file_size(file_path: str) -> None:
+    """Raise ValueError if the file exceeds the maximum allowed size."""
+    try:
+        size_bytes = os.path.getsize(file_path)
+    except OSError as e:
+        raise ValueError(f"Cannot access PDF file: {str(e)}")
+
+    size_mb = size_bytes / (1024 * 1024)
+    if size_mb > MAX_PDF_SIZE_MB:
+        raise ValueError(
+            f"PDF too large. Maximum allowed size is {MAX_PDF_SIZE_MB} MB."
+        )
+
+
+def _open_pdf(file_path: str) -> fitz.Document:
+    """Open a PDF file with size and page-count validation.
+
+    Returns an opened fitz.Document (caller must use as context manager or close).
+
+    Raises:
+        ValueError: If the file cannot be accessed, opened, or exceeds limits.
+    """
+    _validate_file_size(file_path)
+
+    try:
+        doc = fitz.open(file_path)
+    except Exception as e:
+        raise ValueError(f"Cannot open PDF: {str(e)}")
+
+    if doc.page_count > MAX_PDF_PAGES:
+        doc.close()
+        raise ValueError(f"PDF too large. Maximum allowed pages is {MAX_PDF_PAGES}.")
+
+    return doc
 
 
 def extract_text_from_pdf(file_path: str) -> list[dict]:
@@ -14,27 +55,22 @@ def extract_text_from_pdf(file_path: str) -> list[dict]:
         [{"page": 1, "text": "..."}, {"page": 2, "text": "..."}, ...]
 
     Raises:
-        ValueError: If the file cannot be opened or has no extractable text.
+        ValueError: If the file cannot be opened, exceeds limits,
+                    or has no extractable text.
     """
-    try:
-        doc = fitz.open(file_path)
-    except Exception as e:
-        raise ValueError(f"Cannot open PDF: {str(e)}")
-
-    pages = []
-    for page_num in range(doc.page_count):
-        page = doc[page_num]
-        text = page.get_text("text")
-        cleaned = _clean_text(text)
-        if cleaned:
-            pages.append(
-                {
-                    "page": page_num + 1,
-                    "text": cleaned,
-                }
-            )
-
-    doc.close()
+    with _open_pdf(file_path) as doc:
+        pages = []
+        for page_num in range(doc.page_count):
+            page = doc[page_num]
+            text = page.get_text("text")
+            cleaned = _clean_text(text)
+            if cleaned:
+                pages.append(
+                    {
+                        "page": page_num + 1,
+                        "text": cleaned,
+                    }
+                )
 
     if not pages:
         raise ValueError(
@@ -55,11 +91,13 @@ def extract_metadata(file_path: str) -> dict:
             "year": str | None,
             "total_pages": int,
         }
+
+    Raises:
+        ValueError: If the file cannot be opened or exceeds limits.
     """
-    doc = fitz.open(file_path)
-    meta = doc.metadata or {}
-    total_pages = doc.page_count
-    doc.close()
+    with _open_pdf(file_path) as doc:
+        meta = doc.metadata or {}
+        total_pages = doc.page_count
 
     return {
         "title": meta.get("title", "").strip() or None,

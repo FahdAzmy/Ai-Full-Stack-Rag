@@ -45,6 +45,18 @@ class Settings(BaseSettings):
     STORAGE_BUCKET: str = "documents"
     MAX_FILE_SIZE_MB: int = 50
 
+    # OpenRouter (SPEC-03) — OpenAI-compatible API
+    OPENROUTER_API_KEY: str = ""
+    OPENROUTER_BASE_URL: str = "https://openrouter.ai/api/v1"
+
+    # Embedding (SPEC-03)
+    EMBEDDING_MODEL: str = "openai/text-embedding-3-small"
+    EMBEDDING_DIMENSIONS: int = 1536
+
+    # Chunking (SPEC-03)
+    CHUNK_SIZE: int = 800
+    CHUNK_OVERLAP: int = 120
+
     def get_database_url(self) -> str:
         # If DATABASE_URL is provided in .env, use it (and make sure it uses asyncpg)
         if self.DATABASE_URL:

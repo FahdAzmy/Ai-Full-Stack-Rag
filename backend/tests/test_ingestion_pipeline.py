@@ -94,9 +94,12 @@ class TestPdfParserExtractText:
             mock_page_2,
             mock_page_3,
         ][idx]
-        mock_doc.close = MagicMock()
+        mock_doc.__enter__ = MagicMock(return_value=mock_doc)
+        mock_doc.__exit__ = MagicMock(return_value=False)
 
-        with patch("src.services.pdf_parser.fitz") as mock_fitz:
+        with patch("src.services.pdf_parser.fitz") as mock_fitz, patch(
+            "src.services.pdf_parser.os.path.getsize", return_value=1024
+        ):
             mock_fitz.open.return_value = mock_doc
 
             from src.services.pdf_parser import extract_text_from_pdf
@@ -120,9 +123,12 @@ class TestPdfParserExtractText:
         mock_doc = MagicMock()
         mock_doc.page_count = 3
         mock_doc.__getitem__ = lambda self, idx: mock_page
-        mock_doc.close = MagicMock()
+        mock_doc.__enter__ = MagicMock(return_value=mock_doc)
+        mock_doc.__exit__ = MagicMock(return_value=False)
 
-        with patch("src.services.pdf_parser.fitz") as mock_fitz:
+        with patch("src.services.pdf_parser.fitz") as mock_fitz, patch(
+            "src.services.pdf_parser.os.path.getsize", return_value=1024
+        ):
             mock_fitz.open.return_value = mock_doc
 
             from src.services.pdf_parser import extract_text_from_pdf
@@ -135,7 +141,9 @@ class TestPdfParserExtractText:
     @pytest.mark.asyncio
     async def test_extract_text_corrupted_pdf_raises(self):
         """Corrupted PDF that can't be opened → ValueError."""
-        with patch("src.services.pdf_parser.fitz") as mock_fitz:
+        with patch("src.services.pdf_parser.fitz") as mock_fitz, patch(
+            "src.services.pdf_parser.os.path.getsize", return_value=1024
+        ):
             mock_fitz.open.side_effect = Exception("Cannot open file")
 
             from src.services.pdf_parser import extract_text_from_pdf
@@ -154,9 +162,12 @@ class TestPdfParserExtractText:
         mock_doc = MagicMock()
         mock_doc.page_count = 1
         mock_doc.__getitem__ = lambda self, idx: mock_page
-        mock_doc.close = MagicMock()
+        mock_doc.__enter__ = MagicMock(return_value=mock_doc)
+        mock_doc.__exit__ = MagicMock(return_value=False)
 
-        with patch("src.services.pdf_parser.fitz") as mock_fitz:
+        with patch("src.services.pdf_parser.fitz") as mock_fitz, patch(
+            "src.services.pdf_parser.os.path.getsize", return_value=1024
+        ):
             mock_fitz.open.return_value = mock_doc
 
             from src.services.pdf_parser import extract_text_from_pdf
@@ -188,9 +199,12 @@ class TestPdfParserExtractText:
             mock_page_2,
             mock_page_3,
         ][idx]
-        mock_doc.close = MagicMock()
+        mock_doc.__enter__ = MagicMock(return_value=mock_doc)
+        mock_doc.__exit__ = MagicMock(return_value=False)
 
-        with patch("src.services.pdf_parser.fitz") as mock_fitz:
+        with patch("src.services.pdf_parser.fitz") as mock_fitz, patch(
+            "src.services.pdf_parser.os.path.getsize", return_value=1024
+        ):
             mock_fitz.open.return_value = mock_doc
 
             from src.services.pdf_parser import extract_text_from_pdf
@@ -218,9 +232,12 @@ class TestPdfParserExtractMetadata:
             "creationDate": "D:20200315120000+00'00'",
         }
         mock_doc.page_count = 25
-        mock_doc.close = MagicMock()
+        mock_doc.__enter__ = MagicMock(return_value=mock_doc)
+        mock_doc.__exit__ = MagicMock(return_value=False)
 
-        with patch("src.services.pdf_parser.fitz") as mock_fitz:
+        with patch("src.services.pdf_parser.fitz") as mock_fitz, patch(
+            "src.services.pdf_parser.os.path.getsize", return_value=1024
+        ):
             mock_fitz.open.return_value = mock_doc
 
             from src.services.pdf_parser import extract_metadata
@@ -240,9 +257,12 @@ class TestPdfParserExtractMetadata:
         mock_doc = MagicMock()
         mock_doc.metadata = {}
         mock_doc.page_count = 5
-        mock_doc.close = MagicMock()
+        mock_doc.__enter__ = MagicMock(return_value=mock_doc)
+        mock_doc.__exit__ = MagicMock(return_value=False)
 
-        with patch("src.services.pdf_parser.fitz") as mock_fitz:
+        with patch("src.services.pdf_parser.fitz") as mock_fitz, patch(
+            "src.services.pdf_parser.os.path.getsize", return_value=1024
+        ):
             mock_fitz.open.return_value = mock_doc
 
             from src.services.pdf_parser import extract_metadata
@@ -264,9 +284,12 @@ class TestPdfParserExtractMetadata:
             "creationDate": "",  # No date
         }
         mock_doc.page_count = 10
-        mock_doc.close = MagicMock()
+        mock_doc.__enter__ = MagicMock(return_value=mock_doc)
+        mock_doc.__exit__ = MagicMock(return_value=False)
 
-        with patch("src.services.pdf_parser.fitz") as mock_fitz:
+        with patch("src.services.pdf_parser.fitz") as mock_fitz, patch(
+            "src.services.pdf_parser.os.path.getsize", return_value=1024
+        ):
             mock_fitz.open.return_value = mock_doc
 
             from src.services.pdf_parser import extract_metadata
@@ -284,9 +307,12 @@ class TestPdfParserExtractMetadata:
         mock_doc = MagicMock()
         mock_doc.metadata = None
         mock_doc.page_count = 7
-        mock_doc.close = MagicMock()
+        mock_doc.__enter__ = MagicMock(return_value=mock_doc)
+        mock_doc.__exit__ = MagicMock(return_value=False)
 
-        with patch("src.services.pdf_parser.fitz") as mock_fitz:
+        with patch("src.services.pdf_parser.fitz") as mock_fitz, patch(
+            "src.services.pdf_parser.os.path.getsize", return_value=1024
+        ):
             mock_fitz.open.return_value = mock_doc
 
             from src.services.pdf_parser import extract_metadata
@@ -623,10 +649,10 @@ class TestEmbeddingService:
 
     @pytest.mark.asyncio
     async def test_generate_embeddings_api_error_propagates(self):
-        """If OpenRouter API call fails, the exception should propagate."""
+        """If OpenRouter API call fails, the exception should propagate after retries."""
         with patch("src.services.embedding_service.client") as mock_client, patch(
             "src.services.embedding_service.settings"
-        ) as mock_settings:
+        ) as mock_settings, patch("src.services.embedding_service.time.sleep"):
             mock_settings.EMBEDDING_MODEL = "openai/text-embedding-3-small"
             mock_settings.EMBEDDING_DIMENSIONS = 1536
             mock_client.embeddings.create.side_effect = Exception("Invalid API key")
@@ -720,6 +746,8 @@ class TestIngestionServiceProcessDocument:
         mock_embeddings = [[0.1] * 1536, [0.2] * 1536, [0.3] * 1536]
 
         with patch(
+            "src.services.ingestion_service.os.path.exists", return_value=True
+        ), patch(
             "src.services.ingestion_service.extract_metadata",
             return_value=mock_metadata,
         ), patch(
@@ -774,6 +802,8 @@ class TestIngestionServiceProcessDocument:
         }
 
         with patch(
+            "src.services.ingestion_service.os.path.exists", return_value=True
+        ), patch(
             "src.services.ingestion_service.extract_metadata",
             return_value=mock_metadata,
         ), patch(
@@ -811,6 +841,8 @@ class TestIngestionServiceProcessDocument:
         }
 
         with patch(
+            "src.services.ingestion_service.os.path.exists", return_value=True
+        ), patch(
             "src.services.ingestion_service.extract_metadata",
             return_value=mock_metadata,
         ), patch(
@@ -862,6 +894,8 @@ class TestIngestionServiceProcessDocument:
         mock_embeddings = [[0.1] * 1536]
 
         with patch(
+            "src.services.ingestion_service.os.path.exists", return_value=True
+        ), patch(
             "src.services.ingestion_service.extract_metadata",
             return_value=mock_metadata,
         ), patch(
@@ -899,6 +933,8 @@ class TestIngestionServiceProcessDocument:
         mock_metadata = {"title": None, "author": None, "year": None, "total_pages": 1}
 
         with patch(
+            "src.services.ingestion_service.os.path.exists", return_value=True
+        ), patch(
             "src.services.ingestion_service.extract_metadata",
             return_value=mock_metadata,
         ), patch(
@@ -969,6 +1005,8 @@ class TestIngestionServiceProcessDocument:
         mock_embeddings = [[0.1] * 1536]
 
         with patch(
+            "src.services.ingestion_service.os.path.exists", return_value=True
+        ), patch(
             "src.services.ingestion_service.extract_metadata",
             return_value=mock_metadata,
         ), patch(
@@ -1010,6 +1048,8 @@ class TestIngestionServiceProcessDocument:
         mock_chunks = []  # Chunker returns empty after filtering
 
         with patch(
+            "src.services.ingestion_service.os.path.exists", return_value=True
+        ), patch(
             "src.services.ingestion_service.extract_metadata",
             return_value=mock_metadata,
         ), patch(
@@ -1050,6 +1090,8 @@ class TestIngestionServiceProcessDocument:
         ]
 
         with patch(
+            "src.services.ingestion_service.os.path.exists", return_value=True
+        ), patch(
             "src.services.ingestion_service.extract_metadata",
             return_value=mock_metadata,
         ), patch(
@@ -1103,6 +1145,8 @@ class TestIngestionServiceProcessDocument:
         mock_embeddings = [[0.1] * 1536, [0.2] * 1536]
 
         with patch(
+            "src.services.ingestion_service.os.path.exists", return_value=True
+        ), patch(
             "src.services.ingestion_service.extract_metadata",
             return_value=mock_metadata,
         ), patch(
@@ -1163,6 +1207,8 @@ class TestIngestionServiceProcessDocument:
         mock_embeddings = [[0.1] * 1536, [0.2] * 1536, [0.3] * 1536]
 
         with patch(
+            "src.services.ingestion_service.os.path.exists", return_value=True
+        ), patch(
             "src.services.ingestion_service.extract_metadata",
             return_value=mock_metadata,
         ), patch(
@@ -1234,6 +1280,8 @@ class TestIngestionServiceProcessDocument:
         mock_embeddings = [[0.1] * 1536, [0.2] * 1536]  # Only 2!
 
         with patch(
+            "src.services.ingestion_service.os.path.exists", return_value=True
+        ), patch(
             "src.services.ingestion_service.extract_metadata",
             return_value=mock_metadata,
         ), patch(
@@ -1288,8 +1336,8 @@ class TestIngestionServiceProcessDocument:
         doc = await create_document_record(db_session, user, status="uploading")
 
         with patch(
-            "src.services.ingestion_service.extract_metadata"
-        ) as mock_meta, patch(
+            "src.services.ingestion_service.os.path.exists", return_value=True
+        ), patch("src.services.ingestion_service.extract_metadata") as mock_meta, patch(
             "src.services.ingestion_service.extract_text_from_pdf"
         ), patch(
             "src.services.ingestion_service.chunk_document"
@@ -1357,11 +1405,17 @@ class TestChunkOverlapValidation:
             f"Expected >1 chunk from {len(long_text)} chars, " f"got {len(chunks)}"
         )
 
-        # Verify overlap: the tail of chunk[i] should equal the head of chunk[i+1]
+        # Verify overlap: strip [Page N] prefix, then compare tail/head
         overlap = mock_settings.CHUNK_OVERLAP  # 100
+        import re
+
+        def strip_page_prefix(content: str) -> str:
+            """Remove [Page N] prefix from chunk content."""
+            return re.sub(r"^\[Page \d+\] ", "", content)
+
         for i in range(len(chunks) - 1):
-            chunk_current = chunks[i]["content"]
-            chunk_next = chunks[i + 1]["content"]
+            chunk_current = strip_page_prefix(chunks[i]["content"])
+            chunk_next = strip_page_prefix(chunks[i + 1]["content"])
 
             tail = chunk_current[-overlap:]
             head = chunk_next[:overlap]
