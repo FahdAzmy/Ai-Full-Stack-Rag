@@ -90,8 +90,8 @@ PyMuPDF==1.25.3
 # Text Splitting
 langchain-text-splitters==0.3.8
 
-# OpenAI (Embeddings + LLM)
-openai==1.75.0
+# OpenAI SDK (used via OpenRouter)
+openai==2.12.0
 ```
 
 **Install:**
@@ -107,11 +107,12 @@ pip freeze > requirements.txt  # or manually add versions
 **File:** `src/helpers/config.py` — add to `Settings` class:
 
 ```python
-# OpenAI
-OPENAI_API_KEY: str
+# OpenRouter (OpenAI-compatible API)
+OPENROUTER_API_KEY: str
+OPENROUTER_BASE_URL: str = "https://openrouter.ai/api/v1"
 
 # Embedding
-EMBEDDING_MODEL: str = "text-embedding-3-small"
+EMBEDDING_MODEL: str = "openai/text-embedding-3-small"
 EMBEDDING_DIMENSIONS: int = 1536
 
 # Chunking
@@ -122,8 +123,9 @@ CHUNK_OVERLAP: int = 100
 **File:** `.env` — add:
 
 ```env
-OPENAI_API_KEY=sk-your-key-here
-EMBEDDING_MODEL=text-embedding-3-small
+OPENROUTER_API_KEY=sk-or-your-key-here
+OPENROUTER_BASE_URL=https://openrouter.ai/api/v1
+EMBEDDING_MODEL=openai/text-embedding-3-small
 EMBEDDING_DIMENSIONS=1536
 CHUNK_SIZE=800
 CHUNK_OVERLAP=100
@@ -317,22 +319,28 @@ def chunk_document(pages: list[dict]) -> list[dict]:
 **New file:** `src/services/embedding_service.py`
 
 Responsibilities:
-- Generate embeddings using OpenAI text-embedding-3-small
+- Generate embeddings via OpenRouter (OpenAI-compatible API)
 - Batch processing (max 100 per API call)
 - Error handling and retry logic
 
 ```python
 """
-Embedding Service — Generate vector embeddings using OpenAI API.
+Embedding Service — Generate vector embeddings via OpenRouter.
 
-Model: text-embedding-3-small
+OpenRouter provides an OpenAI-compatible API, so we use the openai SDK
+with a custom base_url pointing to OpenRouter.
+
+Model: openai/text-embedding-3-small
 Dimensions: 1536
 Max batch size: 100 texts per API call
 """
 from openai import OpenAI
 from src.helpers.config import settings
 
-client = OpenAI(api_key=settings.OPENAI_API_KEY)
+client = OpenAI(
+    api_key=settings.OPENROUTER_API_KEY,
+    base_url=settings.OPENROUTER_BASE_URL,
+)
 
 
 def generate_embeddings(texts: list[str]) -> list[list[float]]:
@@ -346,13 +354,13 @@ def generate_embeddings(texts: list[str]) -> list[list[float]]:
         List of embedding vectors (each is a list of 1536 floats).
 
     Raises:
-        Exception: If the OpenAI API call fails after retries.
+        Exception: If the OpenRouter API call fails after retries.
     """
     if not texts:
         return []
 
     all_embeddings = []
-    batch_size = 100  # OpenAI limit
+    batch_size = 100  # API batch limit
 
     for i in range(0, len(texts), batch_size):
         batch = texts[i:i + batch_size]
@@ -541,9 +549,9 @@ await process_document(str(document.id), db)
 | File | Change |
 |---|---|
 | `src/models/db_scheams/DocumeCnthunk.py` | Add `chunk_index` column |
-| `src/helpers/config.py` | Add OpenAI and chunking settings |
+| `src/helpers/config.py` | Add OpenRouter and chunking settings |
 | `requirements.txt` | Add PyMuPDF, langchain-text-splitters, openai |
-| `.env` | Add `OPENAI_API_KEY` |
+| `.env` | Add `OPENROUTER_API_KEY`, `OPENROUTER_BASE_URL` |
 
 ---
 
@@ -551,8 +559,8 @@ await process_document(str(document.id), db)
 
 1. **Minimum chunk size:** Chunks shorter than 50 characters are discarded (noise like headers, page numbers).
 2. **Metadata priority:** If user manually set metadata (via SPEC-02 PATCH), it takes priority over auto-extracted metadata (note the `or` logic in `document.title = document.title or metadata.get("title")`).
-3. **Embedding model:** Using OpenAI `text-embedding-3-small` with 1536 dimensions to match the existing `Vector(1536)` column definition.
-4. **Batch size:** Embeddings are generated in batches of 100 to respect OpenAI API limits.
+3. **Embedding model:** Using `openai/text-embedding-3-small` via OpenRouter with 1536 dimensions to match the existing `Vector(1536)` column definition.
+4. **Batch size:** Embeddings are generated in batches of 100 to respect API limits.
 5. **Error handling:** If extraction fails, the document status is set to `"failed"` and the error message is stored. The user can see why it failed via `GET /documents/{id}`.
 6. **Idempotency:** If re-processing is needed, old chunks should be deleted first (not implemented in v1 — handle in SPEC-08).
 
@@ -565,7 +573,7 @@ await process_document(str(document.id), db)
 | 10-page PDF | ≤ 15 seconds | Text extraction + chunking + embedding |
 | 50-page PDF | ≤ 60 seconds | Mostly embedding API latency |
 | 200-page PDF | ≤ 4 minutes | Consider async processing (SPEC-08) |
-| Embedding batch (100 chunks) | ≤ 5 seconds | OpenAI API response time |
+| Embedding batch (100 chunks) | ≤ 5 seconds | OpenRouter API response time |
 
 ---
 
@@ -583,7 +591,7 @@ await process_document(str(document.id), db)
 | 8 | Verify embeddings are 1536-dim | Each embedding vector has 1536 floats |
 | 9 | Verify metadata extraction | `title`, `author` populated from PDF metadata |
 | 10 | Large PDF (200 pages) | Completes without timeout |
-| 11 | Invalid OpenAI API key | Status → "failed", clear error message |
+| 11 | Invalid OpenRouter API key | Status → "failed", clear error message |
 
 ---
 
@@ -594,7 +602,7 @@ await process_document(str(document.id), db)
 - [ ] Text is chunked with 800-char size and 100-char overlap
 - [ ] Tiny fragments (< 50 chars) are filtered out
 - [ ] Each chunk has correct `page_number` and `chunk_index`
-- [ ] Embeddings are generated using OpenAI text-embedding-3-small
+- [ ] Embeddings are generated using openai/text-embedding-3-small via OpenRouter
 - [ ] Embeddings are 1536-dimensional vectors
 - [ ] Chunks are saved to `document_chunks` table with all fields populated
 - [ ] Document status transitions: `processing` → `ready` on success
