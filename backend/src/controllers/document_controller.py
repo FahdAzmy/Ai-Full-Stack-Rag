@@ -9,6 +9,8 @@ from fastapi import UploadFile, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func
 
+from src.services.ingestion_service import process_document
+
 from src.models.db_scheams.document import Document
 from src.models.db_scheams.DocumentChunk import DocumentChunk
 from src.models.schemas.document_schemas import (
@@ -153,7 +155,7 @@ async def upload_document(
         file_name=original_filename,
         file_path=storage_path,
         file_size=file_size,
-        status="processing",
+        status="uploading",
     )
     db.add(doc)
     await db.commit()
@@ -179,13 +181,23 @@ async def upload_document(
             detail="Failed to upload file to storage",
         )
 
+    # ── Run ingestion pipeline (SPEC-03) ─────────────────────────────────
+    # Pipeline: uploading → processing → ready/failed
+    # In v1, runs synchronously. In SPEC-08, will run via Celery.
+    await process_document(str(document_id), db)
+
+    # Refresh to get latest status after pipeline completes
+    await db.refresh(doc)
+
     # ── Return response ──────────────────────────────────────────────────
-    logger.info("Upload complete: doc=%s", document_id)
+    logger.info(
+        "Upload + ingestion complete: doc=%s status=%s", document_id, doc.status
+    )
     return DocumentUploadResponse(
         id=str(document_id),
         file_name=original_filename,
         file_size=file_size,
-        status="processing",
+        status=doc.status,
         message="Upload successful. Processing started.",
     )
 
