@@ -394,6 +394,7 @@ class TestTextChunker:
         with patch("src.services.chunker.settings") as mock_settings:
             mock_settings.CHUNK_SIZE = 800
             mock_settings.CHUNK_OVERLAP = 100
+            mock_settings.MIN_CHUNK_LENGTH = 50
 
             from src.services.chunker import chunk_document
 
@@ -420,6 +421,7 @@ class TestTextChunker:
         with patch("src.services.chunker.settings") as mock_settings:
             mock_settings.CHUNK_SIZE = 800
             mock_settings.CHUNK_OVERLAP = 100
+            mock_settings.MIN_CHUNK_LENGTH = 50
 
             from src.services.chunker import chunk_document
 
@@ -444,6 +446,7 @@ class TestTextChunker:
         with patch("src.services.chunker.settings") as mock_settings:
             mock_settings.CHUNK_SIZE = 800
             mock_settings.CHUNK_OVERLAP = 100
+            mock_settings.MIN_CHUNK_LENGTH = 50
 
             from src.services.chunker import chunk_document
 
@@ -472,6 +475,7 @@ class TestTextChunker:
         with patch("src.services.chunker.settings") as mock_settings:
             mock_settings.CHUNK_SIZE = 800
             mock_settings.CHUNK_OVERLAP = 100
+            mock_settings.MIN_CHUNK_LENGTH = 50
 
             from src.services.chunker import chunk_document
 
@@ -489,6 +493,7 @@ class TestTextChunker:
         with patch("src.services.chunker.settings") as mock_settings:
             mock_settings.CHUNK_SIZE = 800
             mock_settings.CHUNK_OVERLAP = 100
+            mock_settings.MIN_CHUNK_LENGTH = 50
 
             from src.services.chunker import chunk_document
 
@@ -508,6 +513,7 @@ class TestTextChunker:
         with patch("src.services.chunker.settings") as mock_settings:
             mock_settings.CHUNK_SIZE = 800
             mock_settings.CHUNK_OVERLAP = 100
+            mock_settings.MIN_CHUNK_LENGTH = 50
 
             from src.services.chunker import chunk_document
 
@@ -1395,6 +1401,7 @@ class TestChunkOverlapValidation:
         with patch("src.services.chunker.settings") as mock_settings:
             mock_settings.CHUNK_SIZE = 800
             mock_settings.CHUNK_OVERLAP = 100
+            mock_settings.MIN_CHUNK_LENGTH = 50
 
             from src.services.chunker import chunk_document
 
@@ -1442,6 +1449,7 @@ class TestChunkOverlapValidation:
         with patch("src.services.chunker.settings") as mock_settings:
             mock_settings.CHUNK_SIZE = 800
             mock_settings.CHUNK_OVERLAP = 100
+            mock_settings.MIN_CHUNK_LENGTH = 50
 
             from src.services.chunker import chunk_document
 
@@ -1451,6 +1459,7 @@ class TestChunkOverlapValidation:
         with patch("src.services.chunker.settings") as mock_settings:
             mock_settings.CHUNK_SIZE = 800
             mock_settings.CHUNK_OVERLAP = 0
+            mock_settings.MIN_CHUNK_LENGTH = 50
 
             from src.services.chunker import chunk_document
 

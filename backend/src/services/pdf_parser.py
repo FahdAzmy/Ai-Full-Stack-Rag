@@ -6,9 +6,7 @@ import os
 import re
 import fitz  # PyMuPDF
 
-# ── Safety limits ────────────────────────────────────────────────────────────
-MAX_PDF_PAGES = 1000
-MAX_PDF_SIZE_MB = 20
+from src.helpers.config import settings
 
 
 def _validate_file_size(file_path: str) -> None:
@@ -19,9 +17,9 @@ def _validate_file_size(file_path: str) -> None:
         raise ValueError(f"Cannot access PDF file: {str(e)}")
 
     size_mb = size_bytes / (1024 * 1024)
-    if size_mb > MAX_PDF_SIZE_MB:
+    if size_mb > settings.MAX_PDF_SIZE_MB:
         raise ValueError(
-            f"PDF too large. Maximum allowed size is {MAX_PDF_SIZE_MB} MB."
+            f"PDF too large. Maximum allowed size is {settings.MAX_PDF_SIZE_MB} MB."
         )
 
 
@@ -40,9 +38,11 @@ def _open_pdf(file_path: str) -> fitz.Document:
     except Exception as e:
         raise ValueError(f"Cannot open PDF: {str(e)}")
 
-    if doc.page_count > MAX_PDF_PAGES:
+    if doc.page_count > settings.MAX_PDF_PAGES:
         doc.close()
-        raise ValueError(f"PDF too large. Maximum allowed pages is {MAX_PDF_PAGES}.")
+        raise ValueError(
+            f"PDF too large. Maximum allowed pages is {settings.MAX_PDF_PAGES}."
+        )
 
     return doc
 

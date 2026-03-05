@@ -53,9 +53,14 @@ class Settings(BaseSettings):
     EMBEDDING_MODEL: str = "openai/text-embedding-3-small"
     EMBEDDING_DIMENSIONS: int = 1536
 
+    # PDF Safety Limits (SPEC-03)
+    MAX_PDF_PAGES: int = 1000
+    MAX_PDF_SIZE_MB: int = 20
+
     # Chunking (SPEC-03)
     CHUNK_SIZE: int = 800
     CHUNK_OVERLAP: int = 120
+    MIN_CHUNK_LENGTH: int = 50
 
     def get_database_url(self) -> str:
         # If DATABASE_URL is provided in .env, use it (and make sure it uses asyncpg)

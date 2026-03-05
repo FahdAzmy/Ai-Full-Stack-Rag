@@ -15,7 +15,6 @@ from langchain_text_splitters import RecursiveCharacterTextSplitter
 from src.helpers.config import settings
 
 # ── Constants ────────────────────────────────────────────────────────────────
-MIN_CHUNK_LENGTH = 50
 
 SEPARATORS = [
     "\n\n",
@@ -81,7 +80,7 @@ def chunk_document(pages: list[dict]) -> list[dict]:
         clean_chunks = list(map(str.strip, page_chunks))
 
         for chunk_text in clean_chunks:
-            if chunk_text and len(chunk_text) >= MIN_CHUNK_LENGTH:
+            if chunk_text and len(chunk_text) >= settings.MIN_CHUNK_LENGTH:
                 chunks.append(
                     {
                         "content": f"[Page {page_num}] {chunk_text}",
