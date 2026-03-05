@@ -26,6 +26,7 @@ Safety features:
 import os
 import asyncio
 import logging
+import tempfile
 from typing import Callable
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -35,6 +36,7 @@ from src.models.db_scheams.DocumentChunk import DocumentChunk
 from src.services.pdf_parser import extract_text_from_pdf, extract_metadata
 from src.services.chunker import chunk_document
 from src.services.embedding_service import generate_embeddings
+from src.helpers import storage
 
 logger = logging.getLogger(__name__)
 
@@ -129,40 +131,62 @@ class IngestionPipeline:
     # ── Step 3–12: Core Processing ───────────────────────────────────────
 
     async def _process(self) -> None:
-        """Execute the core extraction → chunk → embed → save pipeline."""
-        file_path = self._document.file_path
+        """Execute the core extraction → chunk → embed → save pipeline.
 
-        # Validate file exists
-        if not os.path.exists(file_path):
-            raise ValueError(f"Document file not found: {file_path}")
+        Downloads the PDF from Supabase Storage to a temp file,
+        processes it, then cleans up the temp file.
+        """
+        storage_path = self._document.file_path
 
-        # Extract metadata (user-set values take priority)
-        logger.info("[doc=%s] Extracting metadata.", self._document_id)
-        metadata = self._extract_metadata(file_path)
-        self._apply_metadata(metadata)
-
-        # Extract text from PDF
-        logger.info("[doc=%s] Extracting text.", self._document_id)
-        pages = self._extract_text(file_path)
-
-        # Chunk the text
-        logger.info("[doc=%s] Chunking text.", self._document_id)
-        chunks = self._chunk(pages)
-        self._validate_chunks(chunks)
-
-        # Generate embeddings (async-safe, batching handled by embedding service)
+        # Download PDF from Supabase to a temporary local file
         logger.info(
-            "[doc=%s] Generating embeddings for %d chunks.",
-            self._document_id,
-            len(chunks),
+            "[doc=%s] Downloading from storage: %s", self._document_id, storage_path
         )
-        texts = [c["content"] for c in chunks]
-        embeddings = await asyncio.to_thread(self._embed, texts)
-        self._validate_embeddings(chunks, embeddings)
+        try:
+            pdf_bytes = await asyncio.to_thread(storage.download, storage_path)
+        except Exception as e:
+            raise ValueError(f"Failed to download document from storage: {str(e)}")
 
-        # Save chunks + mark ready in single atomic commit
-        await self._save_chunks(chunks, embeddings)
-        await self._set_ready()
+        # Write to temp file for PyMuPDF processing
+        tmp_file = tempfile.NamedTemporaryFile(suffix=".pdf", delete=False)
+        try:
+            tmp_file.write(pdf_bytes)
+            tmp_file.close()
+            local_path = tmp_file.name
+
+            # Extract metadata (user-set values take priority)
+            logger.info("[doc=%s] Extracting metadata.", self._document_id)
+            metadata = self._extract_metadata(local_path)
+            self._apply_metadata(metadata)
+
+            # Extract text from PDF
+            logger.info("[doc=%s] Extracting text.", self._document_id)
+            pages = self._extract_text(local_path)
+
+            # Chunk the text
+            logger.info("[doc=%s] Chunking text.", self._document_id)
+            chunks = self._chunk(pages)
+            self._validate_chunks(chunks)
+
+            # Generate embeddings (async-safe, batching handled by embedding service)
+            logger.info(
+                "[doc=%s] Generating embeddings for %d chunks.",
+                self._document_id,
+                len(chunks),
+            )
+            texts = [c["content"] for c in chunks]
+            embeddings = await asyncio.to_thread(self._embed, texts)
+            self._validate_embeddings(chunks, embeddings)
+
+            # Save chunks + mark ready in single atomic commit
+            await self._save_chunks(chunks, embeddings)
+            await self._set_ready()
+
+        finally:
+            # Always clean up the temp file
+            if os.path.exists(tmp_file.name):
+                os.unlink(tmp_file.name)
+                logger.info("[doc=%s] Temp file cleaned up.", self._document_id)
 
     # ── Metadata Helpers ─────────────────────────────────────────────────
 
