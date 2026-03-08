@@ -752,7 +752,7 @@ class TestIngestionServiceProcessDocument:
         mock_embeddings = [[0.1] * 1536, [0.2] * 1536, [0.3] * 1536]
 
         with patch(
-            "src.services.ingestion_service.os.path.exists", return_value=True
+            "src.services.ingestion_service.storage.download", return_value=b"%PDF-fake"
         ), patch(
             "src.services.ingestion_service.extract_metadata",
             return_value=mock_metadata,
@@ -808,7 +808,7 @@ class TestIngestionServiceProcessDocument:
         }
 
         with patch(
-            "src.services.ingestion_service.os.path.exists", return_value=True
+            "src.services.ingestion_service.storage.download", return_value=b"%PDF-fake"
         ), patch(
             "src.services.ingestion_service.extract_metadata",
             return_value=mock_metadata,
@@ -847,7 +847,7 @@ class TestIngestionServiceProcessDocument:
         }
 
         with patch(
-            "src.services.ingestion_service.os.path.exists", return_value=True
+            "src.services.ingestion_service.storage.download", return_value=b"%PDF-fake"
         ), patch(
             "src.services.ingestion_service.extract_metadata",
             return_value=mock_metadata,
@@ -900,7 +900,7 @@ class TestIngestionServiceProcessDocument:
         mock_embeddings = [[0.1] * 1536]
 
         with patch(
-            "src.services.ingestion_service.os.path.exists", return_value=True
+            "src.services.ingestion_service.storage.download", return_value=b"%PDF-fake"
         ), patch(
             "src.services.ingestion_service.extract_metadata",
             return_value=mock_metadata,
@@ -939,7 +939,7 @@ class TestIngestionServiceProcessDocument:
         mock_metadata = {"title": None, "author": None, "year": None, "total_pages": 1}
 
         with patch(
-            "src.services.ingestion_service.os.path.exists", return_value=True
+            "src.services.ingestion_service.storage.download", return_value=b"%PDF-fake"
         ), patch(
             "src.services.ingestion_service.extract_metadata",
             return_value=mock_metadata,
@@ -1011,7 +1011,7 @@ class TestIngestionServiceProcessDocument:
         mock_embeddings = [[0.1] * 1536]
 
         with patch(
-            "src.services.ingestion_service.os.path.exists", return_value=True
+            "src.services.ingestion_service.storage.download", return_value=b"%PDF-fake"
         ), patch(
             "src.services.ingestion_service.extract_metadata",
             return_value=mock_metadata,
@@ -1054,7 +1054,7 @@ class TestIngestionServiceProcessDocument:
         mock_chunks = []  # Chunker returns empty after filtering
 
         with patch(
-            "src.services.ingestion_service.os.path.exists", return_value=True
+            "src.services.ingestion_service.storage.download", return_value=b"%PDF-fake"
         ), patch(
             "src.services.ingestion_service.extract_metadata",
             return_value=mock_metadata,
@@ -1096,7 +1096,7 @@ class TestIngestionServiceProcessDocument:
         ]
 
         with patch(
-            "src.services.ingestion_service.os.path.exists", return_value=True
+            "src.services.ingestion_service.storage.download", return_value=b"%PDF-fake"
         ), patch(
             "src.services.ingestion_service.extract_metadata",
             return_value=mock_metadata,
@@ -1151,7 +1151,7 @@ class TestIngestionServiceProcessDocument:
         mock_embeddings = [[0.1] * 1536, [0.2] * 1536]
 
         with patch(
-            "src.services.ingestion_service.os.path.exists", return_value=True
+            "src.services.ingestion_service.storage.download", return_value=b"%PDF-fake"
         ), patch(
             "src.services.ingestion_service.extract_metadata",
             return_value=mock_metadata,
@@ -1213,7 +1213,7 @@ class TestIngestionServiceProcessDocument:
         mock_embeddings = [[0.1] * 1536, [0.2] * 1536, [0.3] * 1536]
 
         with patch(
-            "src.services.ingestion_service.os.path.exists", return_value=True
+            "src.services.ingestion_service.storage.download", return_value=b"%PDF-fake"
         ), patch(
             "src.services.ingestion_service.extract_metadata",
             return_value=mock_metadata,
@@ -1286,7 +1286,7 @@ class TestIngestionServiceProcessDocument:
         mock_embeddings = [[0.1] * 1536, [0.2] * 1536]  # Only 2!
 
         with patch(
-            "src.services.ingestion_service.os.path.exists", return_value=True
+            "src.services.ingestion_service.storage.download", return_value=b"%PDF-fake"
         ), patch(
             "src.services.ingestion_service.extract_metadata",
             return_value=mock_metadata,
@@ -1342,7 +1342,7 @@ class TestIngestionServiceProcessDocument:
         doc = await create_document_record(db_session, user, status="uploading")
 
         with patch(
-            "src.services.ingestion_service.os.path.exists", return_value=True
+            "src.services.ingestion_service.storage.download", return_value=b"%PDF-fake"
         ), patch("src.services.ingestion_service.extract_metadata") as mock_meta, patch(
             "src.services.ingestion_service.extract_text_from_pdf"
         ), patch(
