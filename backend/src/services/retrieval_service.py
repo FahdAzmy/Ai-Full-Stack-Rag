@@ -6,6 +6,7 @@ for a given query. All queries are scoped to the authenticated user's
 documents to ensure data isolation.
 """
 import uuid as uuid_mod
+from typing import Callable
 
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import text
@@ -39,6 +40,8 @@ async def search_similar_chunks(
     top_k: int = 5,
     similarity_threshold: float = 0.3,
     document_ids: list[str] | None = None,
+    *,
+    embedder: Callable | None = None,
 ) -> list[dict]:
     """
     Find the most relevant document chunks for a given query.
@@ -51,6 +54,8 @@ async def search_similar_chunks(
         similarity_threshold: Minimum cosine similarity score (default: 0.3).
         document_ids: Optional list of document UUIDs to search within.
                      If None, searches all user's documents.
+        embedder: Callable to generate a single embedding (DIP).
+                 Defaults to generate_single_embedding.
 
     Returns:
         List of dicts, each containing:
@@ -77,10 +82,13 @@ async def search_similar_chunks(
 
     _validate_user_id(user_id)
 
+    # Use injected embedder or default
+    _embedder = embedder or generate_single_embedding
+
     # 1. Generate query embedding
     query_preview = query[:80] if query else "(empty)"
     logger.info("Generating embedding for query: '%s...'", query_preview)
-    query_embedding = generate_single_embedding(query)
+    query_embedding = _embedder(query)
 
     # 2. Validate & format embedding for pgvector
     _validate_embedding(query_embedding)

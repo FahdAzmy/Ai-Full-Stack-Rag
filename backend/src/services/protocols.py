@@ -71,3 +71,53 @@ class EmbedderProtocol(Protocol):
     def generate_single_embedding(self, text: str) -> list[float]:
         """Generate embedding for a single text."""
         ...
+
+
+# ── Chat System Protocols (SPEC-05) ─────────────────────────────────────────
+
+
+@runtime_checkable
+class LLMProtocol(Protocol):
+    """Contract for LLM answer generation."""
+
+    async def generate_answer(self, messages: list[dict]) -> str:
+        """Generate a complete answer from the LLM."""
+        ...
+
+    async def generate_title(self, question: str) -> str:
+        """Generate a short chat title from a question."""
+        ...
+
+
+@runtime_checkable
+class ContextBuilderProtocol(Protocol):
+    """Contract for assembling LLM prompts from retrieved chunks."""
+
+    def build_prompt(
+        self,
+        question: str,
+        retrieved_chunks: list[dict],
+        conversation_history: list[dict] | None = None,
+    ) -> list[dict]:
+        """Build an OpenAI-compatible message list."""
+        ...
+
+    def get_source_summary(self, chunks: list[dict]) -> list[dict]:
+        """Create a concise summary of sources used."""
+        ...
+
+
+@runtime_checkable
+class RetrievalProtocol(Protocol):
+    """Contract for semantic search over document chunks."""
+
+    async def search(
+        self,
+        query: str,
+        user_id: str,
+        db: object,
+        top_k: int = 5,
+        document_ids: list[str] | None = None,
+    ) -> list[dict]:
+        """Find the most relevant document chunks for a query."""
+        ...

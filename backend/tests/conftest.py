@@ -19,6 +19,8 @@ from src.helpers.config import settings
 from src.models.db_scheams.user import User  # noqa: F401
 from src.models.db_scheams.document import Document  # noqa: F401
 from src.models.db_scheams.DocumentChunk import DocumentChunk  # noqa: F401
+from src.models.db_scheams.Chat import Chat  # noqa: F401
+from src.models.db_scheams.Message import Message  # noqa: F401
 
 
 # Create test engine using the same database
@@ -43,12 +45,15 @@ def event_loop():
 
 @pytest_asyncio.fixture(scope="function")
 async def setup_database():
-    """Create all tables before each test and clean up after."""
+    """Drop and recreate all tables before each test to pick up schema changes."""
     async with test_engine.begin() as conn:
+        await conn.run_sync(Base.metadata.drop_all)
         await conn.run_sync(Base.metadata.create_all)
     yield
     # Clean up tables after each test for isolation (order matters: FK constraints)
     async with test_engine.begin() as conn:
+        await conn.execute(text("DELETE FROM messages"))
+        await conn.execute(text("DELETE FROM chats"))
         await conn.execute(text("DELETE FROM document_chunks"))
         await conn.execute(text("DELETE FROM documents"))
         await conn.execute(text("DELETE FROM users"))

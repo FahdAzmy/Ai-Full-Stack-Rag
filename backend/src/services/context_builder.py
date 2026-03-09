@@ -60,6 +60,7 @@ def build_prompt(
     retrieved_chunks: list[dict],
     conversation_history: list[dict] | None = None,
     max_history_messages: int = 10,
+    system_prompt_template: str = SYSTEM_PROMPT_TEMPLATE,
 ) -> list[dict]:
     """
     Build a structured LLM prompt.
@@ -78,7 +79,7 @@ def build_prompt(
     context = _build_context_string(retrieved_chunks)
 
     # System message with context injected
-    system_content = SYSTEM_PROMPT_TEMPLATE.format(context=context)
+    system_content = system_prompt_template.format(context=context)
     messages = [{"role": "system", "content": system_content}]
 
     # Add conversation history (limited to most recent N messages)

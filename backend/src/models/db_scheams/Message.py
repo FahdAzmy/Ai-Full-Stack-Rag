@@ -4,7 +4,7 @@ Message schema.
 
 import uuid
 from datetime import datetime
-from sqlalchemy import Column, Text, DateTime, ForeignKey, String
+from sqlalchemy import Column, Text, DateTime, ForeignKey, String, JSON
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 from pgvector.sqlalchemy import Vector
@@ -22,6 +22,9 @@ class Message(Base):
     # user | assistant
 
     content = Column(Text, nullable=False)
+
+    # Sources used to generate this response (assistant messages only)
+    source_chunks = Column(JSON, nullable=True)
 
     # optional semantic memory
     embedding = Column(Vector(1536), nullable=True)
