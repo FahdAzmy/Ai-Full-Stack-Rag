@@ -23,7 +23,6 @@ class Settings(BaseSettings):
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
     REFRESH_SECRET_KEY: str
-    ACCESS_TOKEN_EXPIRE_MINUTES: int
     REFRESH_TOKEN_EXPIRE_DAYS: int
 
     # Email
@@ -61,6 +60,12 @@ class Settings(BaseSettings):
     CHUNK_SIZE: int = 800
     CHUNK_OVERLAP: int = 120
     MIN_CHUNK_LENGTH: int = 50
+
+    # LLM (SPEC-05)
+    LLM_MODEL: str = "gpt-4o-mini"
+    LLM_TITLE_MODEL: str = "gpt-4o-mini"
+    LLM_MAX_TOKENS: int = 2000
+    LLM_TEMPERATURE: float = 0.3
 
     def get_database_url(self) -> str:
         # If DATABASE_URL is provided in .env, use it (and make sure it uses asyncpg)

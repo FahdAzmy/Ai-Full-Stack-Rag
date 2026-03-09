@@ -10,6 +10,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from src.helpers.db import get_db, engine, Base
 from src.routes.auth_routes import router as auth_router
 from src.routes.document_routes import router as document_router
+from src.routes.chat_routes import router as chat_router
 from src.helpers.config import Settings
 from src.helpers.logging_config import get_logger, sanitize_headers, generate_request_id
 
@@ -17,6 +18,8 @@ from src.helpers.logging_config import get_logger, sanitize_headers, generate_re
 from src.models.db_scheams.user import User  # noqa: F401
 from src.models.db_scheams.document import Document  # noqa: F401
 from src.models.db_scheams.DocumentChunk import DocumentChunk  # noqa: F401
+from src.models.db_scheams.Chat import Chat  # noqa: F401
+from src.models.db_scheams.Message import Message  # noqa: F401
 
 logger = get_logger("app")
 
@@ -111,6 +114,7 @@ app.add_middleware(
 # Include routers
 app.include_router(auth_router)
 app.include_router(document_router)
+app.include_router(chat_router)
 
 
 @app.get("/")

@@ -179,6 +179,10 @@ List all chats for the current user, newest first.
 }
 ```
 
+> **Implementation note:** `message_count` and `last_message_at` require an aggregation
+> query. Use an outer join with `func.count(Message.id)` and `func.max(Message.created_at)`
+> grouped by `Chat.id`.
+
 ---
 
 ### `GET /chats/{chat_id}`
@@ -336,7 +340,7 @@ Get message history for a chat (paginated).
 
 **Query Parameters:**
 - `limit` (optional, default 50): Max messages to return
-- `before` (optional): Message UUID — get messages before this one
+- `before` (optional): Message UUID — return messages with `created_at` earlier than the referenced message. If the UUID does not exist, return 404.
 
 **Success Response (200):**
 ```json
@@ -347,6 +351,12 @@ Get message history for a chat (paginated).
 }
 ```
 
+### `POST /chats/{chat_id}/query/stream` (Deferred)
+
+> **Note:** Streaming via Server-Sent Events (SSE) is defined in the LLM service
+> (`generate_answer_stream`) but the corresponding API endpoint is deferred to a
+> future iteration. The initial implementation will use the blocking `/query` endpoint.
+
 ---
 
 ## LLM Service
@@ -355,17 +365,21 @@ Get message history for a chat (paginated).
 
 ```python
 """
-LLM Service — Generate answers using OpenAI GPT models.
+LLM Service — Generate answers using OpenAI-compatible API (via OpenRouter).
 
 Supports both complete (blocking) and streaming responses.
+Uses AsyncOpenAI to avoid blocking the FastAPI event loop.
 """
-from openai import OpenAI
+from openai import AsyncOpenAI
 from src.helpers.config import settings
 from src.helpers.logging_config import get_logger
 
 logger = get_logger("llm")
 
-client = OpenAI(api_key=settings.OPENAI_API_KEY)
+client = AsyncOpenAI(
+    api_key=settings.OPENROUTER_API_KEY,
+    base_url=settings.OPENROUTER_BASE_URL,
+)
 
 
 async def generate_answer(messages: list[dict]) -> str:
@@ -384,11 +398,11 @@ async def generate_answer(messages: list[dict]) -> str:
     logger.info(f"Calling LLM ({settings.LLM_MODEL}) with {len(messages)} messages")
 
     try:
-        response = client.chat.completions.create(
+        response = await client.chat.completions.create(
             model=settings.LLM_MODEL,
             messages=messages,
-            temperature=0.3,        # Low for factual accuracy
-            max_tokens=2000,
+            temperature=settings.LLM_TEMPERATURE,
+            max_tokens=settings.LLM_MAX_TOKENS,
             top_p=0.9,
         )
 
@@ -413,16 +427,16 @@ async def generate_answer_stream(messages: list[dict]):
     logger.info(f"Calling LLM ({settings.LLM_MODEL}) with streaming")
 
     try:
-        stream = client.chat.completions.create(
+        stream = await client.chat.completions.create(
             model=settings.LLM_MODEL,
             messages=messages,
-            temperature=0.3,
-            max_tokens=2000,
+            temperature=settings.LLM_TEMPERATURE,
+            max_tokens=settings.LLM_MAX_TOKENS,
             top_p=0.9,
             stream=True,
         )
 
-        for chunk in stream:
+        async for chunk in stream:
             if chunk.choices[0].delta.content:
                 yield chunk.choices[0].delta.content
 
@@ -438,8 +452,8 @@ async def generate_chat_title(question: str) -> str:
     Returns:
         A 3-6 word title summarizing the question.
     """
-    response = client.chat.completions.create(
-        model="gpt-4o-mini",  # Use cheaper model for title generation
+    response = await client.chat.completions.create(
+        model=settings.LLM_TITLE_MODEL,
         messages=[
             {
                 "role": "system",
@@ -462,6 +476,7 @@ async def generate_chat_title(question: str) -> str:
 ```python
 # LLM
 LLM_MODEL: str = "gpt-4o-mini"
+LLM_TITLE_MODEL: str = "gpt-4o-mini"   # Cheaper model for title generation
 LLM_MAX_TOKENS: int = 2000
 LLM_TEMPERATURE: float = 0.3
 ```
@@ -478,6 +493,7 @@ LLM_MODEL=gpt-4o-mini
 **New file:** `src/models/schemas/chat_schemas.py`
 
 ```python
+import uuid
 from pydantic import BaseModel, field_validator
 from datetime import datetime
 
@@ -508,11 +524,56 @@ class QueryRequest(BaseModel):
             raise ValueError("Question cannot be empty")
         return v.strip()
 
+    @field_validator("document_ids")
+    @classmethod
+    def validate_document_ids(cls, v):
+        if v:
+            for doc_id in v:
+                try:
+                    uuid.UUID(doc_id)
+                except ValueError:
+                    raise ValueError(f"Invalid document ID format: {doc_id}")
+        return v
+
+
+class SourceChunkResponse(BaseModel):
+    source_number: int
+    title: str | None = None
+    author: str | None = None
+    year: str | None = None
+    page_number: int | None = None
+    file_name: str | None = None
+    document_id: str | None = None
+    chunk_id: str | None = None
+    similarity: float | None = None
+    excerpt: str | None = None
+
+
+class MessageResponse(BaseModel):
+    id: str
+    role: str
+    content: str
+    source_chunks: list[SourceChunkResponse] | None = None
+    created_at: datetime
+
+    class Config:
+        from_attributes = True
+
+
+class ChatDetailResponse(BaseModel):
+    id: str
+    title: str | None
+    created_at: datetime
+    messages: list[MessageResponse]
+
+    class Config:
+        from_attributes = True
+
 
 class QueryResponse(BaseModel):
     message_id: str
     answer: str
-    sources: list[dict]
+    sources: list[SourceChunkResponse]
 
 
 class UpdateChatRequest(BaseModel):
@@ -555,22 +616,23 @@ class ChatController:
             document_ids=document_ids,
         )
 
-        # 5. Build prompt (SPEC-04)
-        from src.services.context_builder import build_prompt, get_source_summary
-        messages = build_prompt(question, chunks, history)
-        sources = get_source_summary(chunks)
-
-        # 6. Generate answer (this spec)
-        from src.services.llm_service import generate_answer
-        answer = await generate_answer(messages)
-
-        # 7. Save user message
+        # 5. Save user message FIRST (ensures persistence even if LLM fails)
         user_msg = Message(
             chat_id=chat.id,
             role="user",
             content=question,
         )
         db.add(user_msg)
+        await db.flush()  # Assign ID without committing
+
+        # 6. Build prompt (SPEC-04)
+        from src.services.context_builder import build_prompt, get_source_summary
+        messages = build_prompt(question, chunks, history)
+        sources = get_source_summary(chunks)
+
+        # 7. Generate answer (this spec)
+        from src.services.llm_service import generate_answer
+        answer = await generate_answer(messages)
 
         # 8. Save assistant message with sources
         assistant_msg = Message(
@@ -615,8 +677,8 @@ class ChatController:
 | File | Change |
 |---|---|
 | `src/models/db_scheams/Message.py` | Add `source_chunks` JSON column |
-| `src/helpers/config.py` | Add LLM settings |
-| `src/main.py` | Register chat routes |
+| `src/helpers/config.py` | Add LLM settings (`LLM_MODEL`, `LLM_TITLE_MODEL`, `LLM_MAX_TOKENS`, `LLM_TEMPERATURE`) |
+| `src/main.py` | Register chat routes + import `Chat` and `Message` models for `Base.metadata.create_all` |
 | `.env` | Add `LLM_MODEL` |
 
 ---
@@ -629,6 +691,8 @@ class ChatController:
 4. **Source preservation:** Assistant messages store `source_chunks` JSON so sources can be retrieved later without re-querying pgvector.
 5. **Message ordering:** Messages are always returned in `created_at` ascending order.
 6. **Cascade delete:** Deleting a chat deletes all its messages (already configured in Chat model's relationship).
+7. **Message persistence:** User messages are saved to DB *before* calling the LLM, so the question is never lost if the LLM call fails.
+8. **Rate limiting (deferred):** Consider adding rate limiting on `/query` to prevent abuse of expensive LLM API calls (SPEC-08).
 
 ---
 

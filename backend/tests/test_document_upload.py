@@ -121,6 +121,26 @@ def mock_storage_upload_failure():
         yield mock
 
 
+@pytest.fixture(autouse=True)
+def mock_ingestion_pipeline():
+    """Mock process_document to prevent full extraction during upload tests.
+    
+    This simulates an asynchronous pipeline kicking off by just setting
+    the status to "processing" (which the tests expect), avoiding 
+    the real Supabase download calls and heavy PyMuPDF parsing.
+    """
+    async def mock_process(doc_id: str, db: AsyncSession):
+        from sqlalchemy import select
+        result = await db.execute(select(Document).where(Document.id == uuid.UUID(doc_id)))
+        doc = result.scalar_one_or_none()
+        if doc:
+            doc.status = "processing"
+            await db.commit()
+            
+    with patch("src.controllers.document_controller.process_document", side_effect=mock_process) as mock:
+        yield mock
+
+
 # ═════════════════════════════════════════════════════════════════════════════
 # TEST CLASSES
 # ═════════════════════════════════════════════════════════════════════════════
