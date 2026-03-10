@@ -5,15 +5,15 @@
 
 :root {
   /* Medical AI Light Theme */
-  --background: oklch(0.97 0.005 180);
-  --foreground: oklch(0.15 0.02 200);
+  --background: #fdfbf7;
+  --foreground: #0a100d;
   --card: oklch(1 0 0);
   --card-foreground: oklch(0.15 0.02 200);
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.15 0.02 200);
-  --primary: oklch(0.52 0.14 180);       /* #0d9488 teal */
+  --primary: #064e3b;
   --primary-foreground: oklch(1 0 0);
-  --primary-dark: oklch(0.44 0.13 180);  /* #0f766e darker teal */
+  --primary-dark: #04382a;
   --secondary: oklch(0.62 0.12 180);     /* lighter teal */
   --secondary-foreground: oklch(1 0 0);
   --muted: oklch(0.95 0.005 180);
@@ -32,15 +32,15 @@
 }
 
 .dark {
-  --background: oklch(0.12 0.02 200);
-  --foreground: oklch(0.97 0.005 180);
+  --background: #0a1a16;
+  --foreground: #fdfbf7;
   --card: oklch(0.17 0.025 200);
   --card-foreground: oklch(0.97 0.005 180);
   --popover: oklch(0.17 0.025 200);
   --popover-foreground: oklch(0.97 0.005 180);
-  --primary: oklch(0.58 0.14 180);
+  --primary: #10634d;
   --primary-foreground: oklch(1 0 0);
-  --primary-dark: oklch(0.48 0.13 180);
+  --primary-dark: #064e3b;
   --secondary: oklch(0.68 0.12 180);
   --secondary-foreground: oklch(1 0 0);
   --muted: oklch(0.22 0.02 200);
@@ -57,8 +57,12 @@
 }
 
 @theme inline {
-  --font-sans: 'Inter', 'system-ui', 'sans-serif';
+  --font-sans: var(--font-outfit), 'Inter', 'system-ui', 'sans-serif';
   --font-mono: 'JetBrains Mono', 'monospace';
+  --font-display: var(--font-outfit), 'Inter', 'system-ui', 'sans-serif';
+
+  --color-primary-light: #10634d;
+  --color-forest-neutral: #4c5d59;
 
   --color-background: var(--background);
   --color-foreground: var(--foreground);
