@@ -1,5 +1,5 @@
 import { createAsyncThunk } from '@reduxjs/toolkit';
-import { chatsApi } from '@/lib/api/chats';
+import { chatsApi, ChatListItem } from '@/lib/api/chats';
 
 // ── Fetch all chats ─────────────────────────────────────────────────────────
 export const fetchChats = createAsyncThunk(
@@ -7,7 +7,12 @@ export const fetchChats = createAsyncThunk(
   async (_, { rejectWithValue }) => {
     try {
       const response = await chatsApi.list();
-      return response.data;
+      const data = response.data;
+      // Backend may return an array or an object like { chats: [...] }
+      const chats: ChatListItem[] = Array.isArray(data)
+        ? data
+        : (data as any)?.chats ?? [];
+      return chats;
     } catch (error: any) {
       return rejectWithValue(error);
     }

@@ -1,15 +1,57 @@
 'use client';
 
-import { RefObject } from 'react';
-import { Message } from './chat-layout';
+import { RefObject, useState } from 'react';
+import type { MessageResponse, SourceChunk } from '@/lib/api/chats';
+import { SourcesPanel } from './sources-panel';
+import { useLanguage } from '@/lib/language-context';
 
 interface ChatMessagesProps {
-  messages: Message[];
+  messages: MessageResponse[];
   isTyping: boolean;
   messagesEndRef: RefObject<HTMLDivElement | null>;
+  loading?: boolean;
 }
 
-export function ChatMessages({ messages, isTyping, messagesEndRef }: ChatMessagesProps) {
+export function ChatMessages({ messages, isTyping, messagesEndRef, loading }: ChatMessagesProps) {
+  const { t } = useLanguage();
+
+  if (loading) {
+    return (
+      <div className="flex-1 overflow-y-auto chat-scrollbar p-6">
+        <div className="max-w-4xl mx-auto space-y-6">
+          {[1, 2, 3].map((i) => (
+            <div key={i} className="animate-pulse flex gap-4">
+              <div className="w-8 h-8 bg-slate-200 dark:bg-slate-700 rounded-full shrink-0" />
+              <div className="flex-1 space-y-2">
+                <div className="h-4 bg-slate-200 dark:bg-slate-700 rounded w-3/4" />
+                <div className="h-4 bg-slate-200 dark:bg-slate-700 rounded w-1/2" />
+                <div className="h-4 bg-slate-200 dark:bg-slate-700 rounded w-2/3" />
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  if (messages.length === 0) {
+    return (
+      <div className="flex-1 flex items-center justify-center p-6">
+        <div className="text-center max-w-md">
+          <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto mb-4">
+            <span className="material-symbols-outlined text-3xl text-primary">chat</span>
+          </div>
+          <h3 className="text-xl font-bold text-slate-900 dark:text-slate-100">
+            {t('chatEmptyTitle') || 'Start a Conversation'}
+          </h3>
+          <p className="text-sm text-slate-500 dark:text-slate-400 mt-2">
+            {t('chatEmptySubtitle') || 'Ask a question about your research papers to get AI-powered insights with source citations.'}
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="flex-1 overflow-y-auto chat-scrollbar p-6">
       <div className="max-w-4xl mx-auto space-y-8">
@@ -47,7 +89,20 @@ export function ChatMessages({ messages, isTyping, messagesEndRef }: ChatMessage
   );
 }
 
-function AssistantMessage({ message }: { message: Message }) {
+function AssistantMessage({ message }: { message: MessageResponse }) {
+  const { t } = useLanguage();
+  const [showSources, setShowSources] = useState(false);
+  const sources = (message.source_chunks as SourceChunk[] | null) || [];
+  const hasSources = sources.length > 0;
+
+  const formatTime = (dateStr: string) => {
+    try {
+      return new Date(dateStr).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    } catch {
+      return '';
+    }
+  };
+
   return (
     <div className="flex gap-4 animate-in fade-in-0 slide-in-from-bottom-4 duration-300">
       {/* AI avatar */}
@@ -60,26 +115,55 @@ function AssistantMessage({ message }: { message: Message }) {
           dangerouslySetInnerHTML={{ __html: message.content }}
         />
         <div className="flex items-center gap-4">
-          <span className="text-[10px] text-slate-400 font-medium">{message.timestamp}</span>
+          <span className="text-[10px] text-slate-400 font-medium">{formatTime(message.created_at)}</span>
           <div className="flex gap-2">
             <button className="text-slate-400 hover:text-primary dark:hover:text-emerald-400 transition-colors"><span className="material-symbols-outlined text-sm">thumb_up</span></button>
             <button className="text-slate-400 hover:text-primary dark:hover:text-emerald-400 transition-colors"><span className="material-symbols-outlined text-sm">content_copy</span></button>
             <button className="text-slate-400 hover:text-primary dark:hover:text-emerald-400 transition-colors"><span className="material-symbols-outlined text-sm">refresh</span></button>
           </div>
+          {/* View Sources button */}
+          {hasSources && (
+            <button
+              onClick={() => setShowSources(!showSources)}
+              className={`
+                flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold transition-all
+                ${showSources
+                  ? 'bg-primary/10 text-primary dark:bg-primary/20 dark:text-primary-light'
+                  : 'text-slate-400 hover:text-primary hover:bg-primary/5 dark:hover:text-primary-light'
+                }
+              `}
+            >
+              <span className="material-symbols-outlined text-sm">menu_book</span>
+              {t('viewSources') || 'View Sources'} ({sources.length})
+            </button>
+          )}
         </div>
+
+        {/* Sources panel */}
+        {showSources && hasSources && (
+          <SourcesPanel sources={sources} />
+        )}
       </div>
     </div>
   );
 }
 
-function UserMessage({ message }: { message: Message }) {
+function UserMessage({ message }: { message: MessageResponse }) {
+  const formatTime = (dateStr: string) => {
+    try {
+      return new Date(dateStr).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    } catch {
+      return '';
+    }
+  };
+
   return (
     <div className="flex gap-4 justify-end animate-in fade-in-0 slide-in-from-bottom-4 duration-300">
       <div className="flex flex-col items-end gap-2 max-w-[80%]">
         <div className="bg-primary dark:bg-emerald-600 text-secondary dark:text-emerald-50 px-4 py-3 rounded-2xl rounded-tr-none shadow-sm text-start">
           <p className="text-sm leading-relaxed">{message.content}</p>
         </div>
-        <span className="text-[10px] text-slate-400 font-medium block">{message.timestamp}</span>
+        <span className="text-[10px] text-slate-400 font-medium block">{formatTime(message.created_at)}</span>
       </div>
       <div className="size-8 rounded-full bg-primary/20 dark:bg-emerald-500/20 flex items-center justify-center shrink-0">
         <span className="material-symbols-outlined text-primary dark:text-emerald-400 text-sm">person</span>
