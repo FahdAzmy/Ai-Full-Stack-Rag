@@ -123,14 +123,7 @@ export function ChatLayout() {
             <span className="material-symbols-outlined text-primary/40 dark:text-emerald-500/40">menu_open</span>
             <h2 className="text-sm font-semibold text-primary dark:text-emerald-400">Quantum Computing Paradigms Analysis</h2>
           </div>
-          <div className="flex items-center gap-3">
-            <button className="p-2 hover:bg-background-light dark:hover:bg-gray-800 rounded-lg text-primary/60 dark:text-emerald-500/60 transition-colors">
-              <span className="material-symbols-outlined">share</span>
-            </button>
-            <button className="p-2 hover:bg-background-light dark:hover:bg-gray-800 rounded-lg text-primary/60 dark:text-emerald-500/60 transition-colors">
-              <span className="material-symbols-outlined">more_horiz</span>
-            </button>
-          </div>
+       
         </header>
 
         {/* Chat Area */}
@@ -144,63 +137,7 @@ export function ChatLayout() {
         <ChatInput onSend={handleSendMessage} />
       </div>
 
-      {/* Right Citations Panel (Expandable) */}
-      <aside className="w-80 flex-shrink-0 border-l border-border-cream dark:border-gray-800 bg-white dark:bg-background-dark overflow-y-auto hidden lg:flex flex-col transition-colors">
-        <div className="p-6 border-b border-border-cream dark:border-gray-800 bg-background-light/50 dark:bg-gray-900 flex items-center justify-between transition-colors">
-          <h3 className="text-sm font-bold text-primary dark:text-emerald-400 flex items-center gap-2">
-            <span className="material-symbols-outlined text-lg">list_alt</span>
-            Citations & Sources
-          </h3>
-          <span className="text-[10px] font-bold text-primary/40 dark:text-emerald-500/40 bg-primary/5 dark:bg-emerald-500/10 px-2 py-0.5 rounded-full">3 SOURCES</span>
-        </div>
-        <div className="p-4 space-y-4 flex-1 overflow-y-auto chat-scrollbar">
-          {/* Citation Item 1 */}
-          <div className="p-4 rounded-xl border border-border-cream dark:border-gray-800 bg-background-light/30 dark:bg-gray-900/50 hover:border-primary/30 dark:hover:border-emerald-500/30 transition-colors cursor-pointer group">
-            <div className="flex items-start gap-3">
-              <div className="size-6 rounded bg-primary dark:bg-emerald-600 text-white flex items-center justify-center text-[10px] font-bold shrink-0 shadow-sm">1</div>
-              <div className="space-y-1">
-                <p className="text-xs font-bold text-primary dark:text-emerald-300 leading-tight group-hover:text-accent dark:group-hover:text-emerald-400 transition-colors">Quantum Circuits and Universal Gate Sets</p>
-                <p className="text-[10px] text-primary/60 dark:text-emerald-500/60 transition-colors">Preskill, J. (2023). Journal of Quantum Physics, 14(2), 112-145.</p>
-                <div className="pt-2 flex gap-2">
-                  <span className="text-[9px] px-2 py-0.5 bg-white dark:bg-gray-800 border border-border-cream dark:border-gray-700 rounded text-primary/50 dark:text-emerald-500/50 transition-colors shadow-sm">Core Theory</span>
-                </div>
-              </div>
-            </div>
-          </div>
-          {/* Citation Item 2 */}
-          <div className="p-4 rounded-xl border border-border-cream dark:border-gray-800 bg-white dark:bg-background-dark hover:border-primary/30 dark:hover:border-emerald-500/30 transition-colors cursor-pointer group shadow-sm">
-            <div className="flex items-start gap-3">
-              <div className="size-6 rounded bg-primary dark:bg-emerald-600 text-white flex items-center justify-center text-[10px] font-bold shrink-0 shadow-sm">2</div>
-              <div className="space-y-1">
-                <p className="text-xs font-bold text-primary dark:text-emerald-300 leading-tight group-hover:text-accent dark:group-hover:text-emerald-400 transition-colors">Evolutionary Dynamics in Adiabatic Systems</p>
-                <p className="text-[10px] text-primary/60 dark:text-emerald-500/60 transition-colors">Farhi, E., et al. (2022). Science Advances.</p>
-                <div className="pt-2 flex gap-2">
-                  <span className="text-[9px] px-2 py-0.5 bg-white dark:bg-gray-800 border border-border-cream dark:border-gray-700 rounded text-primary/50 dark:text-emerald-500/50 transition-colors shadow-sm">Experimental</span>
-                </div>
-              </div>
-            </div>
-          </div>
-          {/* Citation Item 3 */}
-          <div className="p-4 rounded-xl border border-border-cream dark:border-gray-800 bg-white dark:bg-background-dark hover:border-primary/30 dark:hover:border-emerald-500/30 transition-colors cursor-pointer group shadow-sm">
-            <div className="flex items-start gap-3">
-              <div className="size-6 rounded bg-primary dark:bg-emerald-600 text-white flex items-center justify-center text-[10px] font-bold shrink-0 shadow-sm">3</div>
-              <div className="space-y-1">
-                <p className="text-xs font-bold text-primary dark:text-emerald-300 leading-tight group-hover:text-accent dark:group-hover:text-emerald-400 transition-colors">Quantum Supremacy Using a Programmable Superconducting Processor</p>
-                <p className="text-[10px] text-primary/60 dark:text-emerald-500/60 transition-colors">Arute, F., et al. (2019). Nature, 574(7779), 505-510.</p>
-                <div className="pt-2 flex gap-2">
-                  <span className="text-[9px] px-2 py-0.5 bg-white dark:bg-gray-800 border border-border-cream dark:border-gray-700 rounded text-primary/50 dark:text-emerald-500/50 transition-colors shadow-sm">Groundbreaking</span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div className="mt-auto p-6 border-t border-border-cream dark:border-gray-800 transition-colors">
-          <button className="w-full border border-primary/20 dark:border-emerald-600/30 text-primary dark:text-emerald-400 py-2.5 rounded-xl text-xs font-bold flex items-center justify-center gap-2 hover:bg-primary/5 dark:hover:bg-emerald-500/10 transition-colors">
-            <span className="material-symbols-outlined text-sm">download</span>
-            Export Bibliography (.bib)
-          </button>
-        </div>
-      </aside>
+     
     </div>
   );
 }

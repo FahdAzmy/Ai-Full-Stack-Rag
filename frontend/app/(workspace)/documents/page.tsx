@@ -1,4 +1,4 @@
-import { DocumentsView } from '@/components/chat/documents-view';
+import { DocumentsView } from '@/components/documents/documents-view';
 
 export default function DocumentsPage() {
   return <DocumentsView />;
