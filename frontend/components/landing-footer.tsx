@@ -22,21 +22,7 @@ export function LandingFooter() {
           </p>
         </div>
 
-        {/* Navigation Links */}
-        <div className="flex gap-16 md:gap-24">
-          <div className="flex flex-col gap-4">
-            <span className="text-foreground font-bold tracking-wide uppercase text-xs">{t('footerProduct')}</span>
-            <Link className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors" href="#features">{t('features')}</Link>
-            <Link className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors" href="#">{t('footerIntegrations')}</Link>
-            <Link className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors" href="#pricing">{t('pricing')}</Link>
-          </div>
-          <div className="flex flex-col gap-4">
-            <span className="text-foreground font-bold tracking-wide uppercase text-xs">{t('footerLegal')}</span>
-            <Link className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors" href="#">{t('footerPrivacy')}</Link>
-            <Link className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors" href="#">{t('footerTerms')}</Link>
-            <Link className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors" href="#">{t('footerEthics')}</Link>
-          </div>
-        </div>
+       
       </div>
 
       {/* Copyright & Bottom Bar */}

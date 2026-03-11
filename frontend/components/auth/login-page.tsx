@@ -64,151 +64,136 @@ export function LoginPage({ onSignUpClick, onForgotPasswordClick }: LoginPagePro
   };
 
   return (
-    <div className={`auth-layout ${isRTL ? 'rtl' : 'ltr'}`}>
-
-      {/* ── Left Branding Panel ── */}
-      <div className="auth-panel-left">
-        {/* Logo */}
-        <div className="relative z-10">
-          <div className="flex items-center gap-3 mb-16">
-            <div className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center">
-              <Stethoscope className="w-6 h-6 text-white" />
-            </div>
-            <span className="text-white font-bold text-xl tracking-tight">{t('brandName')}</span>
+    <>
+      <div className="w-full max-w-[420px] mb-8 text-center animate-in fade-in slide-in-from-bottom-4 duration-500 hidden md:block">
+        <div className="flex items-center justify-center gap-2 mb-4">
+          <div className="size-10 bg-primary text-primary-foreground flex items-center justify-center rounded-lg shadow-sm">
+            <span className="material-symbols-outlined !text-3xl">auto_stories</span>
           </div>
-
-          {/* Headline */}
-          <h1 className="text-4xl font-bold text-white leading-tight mb-4">
-            {t('loginHeadline')}
-          </h1>
-          <p className="text-teal-100 text-base leading-relaxed mb-12">
-            {t('loginSubheadline')}
-          </p>
-
-          {/* Features */}
-          <div className="space-y-5">
-            {[
-              { icon: <Zap className="w-4 h-4 text-white" />, title: t('featureInstantTitle'), desc: t('featureInstantDesc') },
-              { icon: <ShieldCheck className="w-4 h-4 text-white" />, title: t('featureEvidenceTitle'), desc: t('featureEvidenceDesc') },
-              { icon: <Clock className="w-4 h-4 text-white" />, title: t('featureGuidanceTitle'), desc: t('featureGuidanceDesc') },
-            ].map((f, i) => (
-              <div key={i} className="auth-feature-item">
-                <div className="auth-feature-icon">{f.icon}</div>
-                <div>
-                  <p className="text-white font-semibold text-sm">{f.title}</p>
-                  <p className="text-teal-200 text-xs mt-0.5">{f.desc}</p>
-                </div>
-              </div>
-            ))}
-          </div>
+          <h1 className="text-2xl font-bold tracking-tight text-foreground">{t('scholarGpt') || 'ScholarGPT'}</h1>
         </div>
-
-        {/* Bottom tagline */}
-        <p className="relative z-10 text-teal-200 text-xs">
-          {t('copyright')}
-        </p>
       </div>
 
-      {/* ── Right Form Panel ── */}
-      <div className="auth-panel-right">
-        <div className="auth-form-card">
-
-          {/* Header */}
-          <div className="mb-8">
-            {/* Mobile logo */}
-            <div className="flex items-center gap-2 mb-8 lg:hidden">
-              <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: 'linear-gradient(135deg,#0d9488,#0f766e)' }}>
-                <Stethoscope className="w-4 h-4 text-white" />
-              </div>
-              <span className="font-bold text-base text-foreground">{t('brandName')}</span>
+      <div className="w-full max-w-[420px] bg-card border border-border rounded-xl shadow-[0_10px_25px_-5px_rgba(6,76,57,0.05),0_8px_10px_-6px_rgba(6,76,57,0.05)] p-8 relative z-10 animate-in fade-in slide-in-from-bottom-8 duration-700">
+        <div className="mb-8">
+          {/* Mobile Logo Logo */}
+          <div className="flex items-center gap-2 mb-6 md:hidden">
+            <div className="size-8 bg-primary text-primary-foreground flex items-center justify-center rounded-lg shadow-sm">
+              <span className="material-symbols-outlined !text-2xl">auto_stories</span>
             </div>
+            <span className="font-bold text-lg text-foreground">{t('scholarGpt') || 'ScholarGPT'}</span>
+          </div>
+          
+          <h2 className="text-xl font-bold text-foreground mb-2">{t('welcomeBackTitle')}</h2>
+          <p className="text-sm font-medium text-muted-foreground">{t('welcomeBackSub')}</p>
+        </div>
 
-            <h2 className="text-2xl font-bold text-foreground mb-1">{t('welcomeBackTitle')}</h2>
-            <p className="text-muted-foreground text-sm">{t('welcomeBackSub')}</p>
+        {/* Error Alert */}
+        {error && (
+          <div className="mb-6 p-4 rounded-xl bg-destructive/10 border border-destructive/20 flex items-start gap-3">
+            <AlertCircle className="w-5 h-5 text-destructive flex-shrink-0 mt-0.5" />
+            <p className="text-sm font-medium text-destructive">{t(error)}</p>
+          </div>
+        )}
+
+        <form onSubmit={handleSubmit} className="space-y-5">
+          {/* Email Address */}
+          <div className="space-y-1.5">
+            <label htmlFor="email" className="block text-sm font-medium text-foreground">{t('email')}</label>
+            <div className="relative">
+              <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+              <input
+                id="email"
+                name="email"
+                type="email"
+                placeholder={t('emailPlaceholder')}
+                value={formData.email}
+                onChange={handleChange}
+                disabled={isLoading}
+                className={`w-full pl-10 pr-4 py-2.5 bg-background border ${validationErrors.email ? 'border-destructive focus:ring-destructive/20 focus:border-destructive' : 'border-input focus:ring-primary/20 focus:border-primary'} text-foreground rounded-xl focus:ring-4 outline-none transition-all placeholder:text-muted-foreground font-medium`}
+              />
+            </div>
+            {validationErrors.email && (
+              <p className="text-xs font-medium text-destructive mt-1.5">{t(validationErrors.email)}</p>
+            )}
           </div>
 
-          {/* Error */}
-          {error && (
-            <div className="med-alert-error">
-              <AlertCircle className="w-4 h-4 flex-shrink-0" />
-              <span>{t(error)}</span>
+          {/* Password */}
+          <div className="space-y-1.5">
+            <div className="flex justify-between items-center">
+              <label htmlFor="password" className="block text-sm font-medium text-foreground">{t('password')}</label>
+              <button
+                type="button"
+                onClick={onForgotPasswordClick}
+                className="text-xs font-bold hover:underline py-1 px-1 rounded text-primary hover:text-primary-light transition-colors focus:outline-none"
+              >
+                {t('forgotPassword')}
+              </button>
             </div>
-          )}
-
-          {/* Form */}
-          <form onSubmit={handleSubmit} className="space-y-4">
-
-            {/* Email */}
-            <div className="space-y-1.5">
-              <label className="text-sm font-medium text-foreground">{t('email')}</label>
-              <div className="relative">
-                <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                <input
-                  name="email"
-                  type="email"
-                  placeholder={t('emailPlaceholder')}
-                  value={formData.email}
-                  onChange={handleChange}
-                  disabled={isLoading}
-                  className={`med-input med-input-icon ${validationErrors.email ? 'med-input-error' : ''}`}
-                />
-              </div>
-              {validationErrors.email && (
-                <p className="text-xs text-destructive">{t(validationErrors.email)}</p>
-              )}
+            <div className="relative">
+              <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+              <input
+                id="password"
+                name="password"
+                type="password"
+                placeholder={t('passwordPlaceholder')}
+                value={formData.password}
+                onChange={handleChange}
+                disabled={isLoading}
+                className={`w-full pl-10 pr-10 py-2.5 bg-background border ${validationErrors.password ? 'border-destructive focus:ring-destructive/20 focus:border-destructive' : 'border-input focus:ring-primary/20 focus:border-primary'} text-foreground rounded-xl focus:ring-4 outline-none transition-all placeholder:text-muted-foreground font-medium`}
+              />
             </div>
+            {validationErrors.password && (
+              <p className="text-xs font-medium text-destructive mt-1.5">{t(validationErrors.password)}</p>
+            )}
+          </div>
 
-            {/* Password */}
-            <div className="space-y-1.5">
-              <div className="flex justify-between items-center">
-                <label className="text-sm font-medium text-foreground">{t('password')}</label>
-                <button
-                  type="button"
-                  onClick={onForgotPasswordClick}
-                  className="text-xs font-medium text-primary hover:text-primary/80 transition-colors"
-                >
-                  {t('forgotPassword')}
-                </button>
-              </div>
-              <div className="relative">
-                <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                <input
-                  name="password"
-                  type="password"
-                  placeholder={t('passwordPlaceholder')}
-                  value={formData.password}
-                  onChange={handleChange}
-                  disabled={isLoading}
-                  className={`med-input med-input-icon ${validationErrors.password ? 'med-input-error' : ''}`}
-                />
-              </div>
-              {validationErrors.password && (
-                <p className="text-xs text-destructive">{t(validationErrors.password)}</p>
-              )}
-            </div>
+          {/* Submit Button */}
+          <button 
+            type="submit" 
+            disabled={isLoading} 
+            className="w-full bg-primary hover:bg-primary-light text-primary-foreground font-bold py-3 mt-2 rounded-xl shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2 active:scale-[0.98]"
+          >
+            {isLoading ? (
+              <><Loader2 className="w-5 h-5 animate-spin" /><span>{t('loading')}</span></>
+            ) : (
+              <span>{t('loginButton')}</span>
+            )}
+          </button>
+        </form>
 
-            {/* Submit */}
-            <button type="submit" disabled={isLoading} className="med-btn-primary mt-2">
-              {isLoading ? (
-                <><Loader2 className="w-4 h-4 animate-spin" /><span>{t('loading')}</span></>
-              ) : (
-                <span>{t('loginButton')}</span>
-              )}
-            </button>
-          </form>
-
-          {/* Footer */}
-          <p className="mt-6 text-center text-sm text-muted-foreground">
+        <div className="mt-8 pt-6 border-t border-border text-center">
+          <p className="text-sm font-medium text-muted-foreground">
             {t('noAccount')}{' '}
             <button
               onClick={onSignUpClick}
-              className="font-semibold text-primary hover:text-primary/80 transition-colors"
+              className="font-bold hover:underline text-primary hover:text-primary-light transition-colors"
             >
               {t('signUpLink')}
             </button>
           </p>
         </div>
       </div>
-    </div>
+
+      <div className="mt-8 flex flex-col items-center gap-4 text-center animate-in fade-in slide-in-from-bottom-8 duration-700 delay-150">
+        <div className="flex -space-x-2">
+          <div className="w-9 h-9 rounded-full border-2 border-background bg-slate-200 overflow-hidden shadow-sm">
+            <img className="w-full h-full object-cover" alt="Researcher profile portrait" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDX5NvuEGwxjSttGE_gb2OfqBVZ1DQy2G60MAUYPGPTLxflmm6YO-Fr2LDRYB6NbK2HEVUVLXrP5vJgvpyEbr1nMsaxgQWWkvb3rBuXBNyML672--goDcRbW0a-gcc4Lb_UciJPInK-YuEV0UJzdknlseEbElvhdB6gbMDG50j6DjxGNEPMYXLF1UMI4GAM9509NRCwvcpLPmOhoRZ8Y1uXfqEmzCkTAy9KwZAuJey2W6tHWcXrAw99G-s3_6BbYWqsjNQf5k1vmOA"/>
+          </div>
+          <div className="w-9 h-9 rounded-full border-2 border-background bg-slate-300 overflow-hidden shadow-sm">
+            <img className="w-full h-full object-cover" alt="Student profile portrait" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA7EiSMgwZHu3FWw3lixb4Kf1Ad32XaxlXWO2BP9qKUIrB8adyBtHdMLbY5SwheateEPkXNWQUr4mkW06fOkBcPXtxGSVxzGA-_7bsJUcbo93fj43wqkGiO0tSgcEUuN42-QmHuaTCkXOgE7FhGtl5ileBQiGJWv9BmzTgG-mvAyV2yhsVEevZzDXTmaigJ5QM-eTOomdUhPiM22qkgQJK9aiK6ucS1h97qatc50SgE2T9iuvYL1f6wb7BNkBCMtnlrbeS-45PWYGM"/>
+          </div>
+          <div className="w-9 h-9 rounded-full border-2 border-background bg-slate-400 overflow-hidden shadow-sm">
+            <img className="w-full h-full object-cover" alt="Academic professional portrait" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAfgicpnsxfRD2Gatup9QSu597elsC5QbM5-zrUczJrHsQUwSOKRg0fluBnKJuTu_bt8kWqnda4eN8QZWygJpjWKi4KDzZrW9wBdxQuZmk7LbAe3RGpiwSUvhdCcbPkoGs39xdBipBpYAXOCrOe5geLCEpTTC1UxklHPY0QGiJKO2w8OHv__tNt_kBYALdiFhV4ecaJ9OvGFEfEj5mQZZWxtvD1-Bq8kgnb_ZOXSe-BoeeBtioCvutyYwFYi-gprn-6dhre9V5T0PE"/>
+          </div>
+          <div className="w-9 h-9 rounded-full border-2 border-background bg-primary flex items-center justify-center text-[10px] font-bold text-primary-foreground shadow-sm">
+            1M+
+          </div>
+        </div>
+        <p className="text-xs text-muted-foreground uppercase tracking-widest font-bold">
+          Securely processing over 1M+ research papers
+        </p>
+      </div>
+    </>
   );
 }
