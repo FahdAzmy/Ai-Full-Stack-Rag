@@ -1,5 +1,4 @@
 import { LandingHeader } from '@/components/landing-header';
-import { LandingFooter } from '@/components/landing-footer';
 import { AuthManager } from '@/components/auth/auth-manager';
 
 export default function AuthPage() {
@@ -10,7 +9,6 @@ export default function AuthPage() {
         <main className="flex-1 flex flex-col">
           <AuthManager />
         </main>
-        <LandingFooter />
       </div>
     </div>
   );

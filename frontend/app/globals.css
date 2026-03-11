@@ -64,6 +64,10 @@
   --color-primary-light: #10634d;
   --color-forest-neutral: #4c5d59;
 
+  --color-border-cream: #e9e4d9;
+  --color-background-light: #fdfaf3;
+  --color-background-dark: #101b22;
+
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
