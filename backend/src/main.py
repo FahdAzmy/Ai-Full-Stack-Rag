@@ -11,6 +11,7 @@ from src.helpers.db import get_db, engine, Base
 from src.routes.auth_routes import router as auth_router
 from src.routes.document_routes import router as document_router
 from src.routes.chat_routes import router as chat_router
+from src.routes.citation_routes import router as citation_router
 from src.helpers.config import Settings
 from src.helpers.logging_config import get_logger, sanitize_headers, generate_request_id
 
@@ -115,6 +116,7 @@ app.add_middleware(
 app.include_router(auth_router)
 app.include_router(document_router)
 app.include_router(chat_router)
+app.include_router(citation_router)
 
 
 @app.get("/")
