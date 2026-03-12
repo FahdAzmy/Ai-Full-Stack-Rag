@@ -76,212 +76,185 @@ export function SignUpPage({ onSuccess, onLoginClick }: SignUpPageProps) {
   };
 
   return (
-    <div className={`auth-layout ${isRTL ? 'rtl' : 'ltr'}`}>
-
-      {/* ── Left Branding Panel ── */}
-      <div className="auth-panel-left">
-        <div className="relative z-10">
-          <div className="flex items-center gap-3 mb-16">
-            <div className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center">
-              <Stethoscope className="w-6 h-6 text-white" />
-            </div>
-            <span className="text-white font-bold text-xl tracking-tight">{t('brandName')}</span>
+    <>
+      <div className="w-full max-w-[420px] mb-8 text-center animate-in fade-in slide-in-from-bottom-4 duration-500 hidden md:block">
+        <div className="flex items-center justify-center gap-2 mb-4">
+          <div className="size-10 bg-primary text-primary-foreground flex items-center justify-center rounded-lg shadow-sm">
+            <span className="material-symbols-outlined !text-3xl">auto_stories</span>
           </div>
-
-          <h1 className="text-4xl font-bold text-white leading-tight mb-4">
-            {t('signupHeadline')}
-          </h1>
-          <p className="text-teal-100 text-base leading-relaxed mb-12">
-            {t('signupSubheadline')}
-          </p>
-
-          <div className="space-y-5">
-            {[
-              { icon: <Zap className="w-4 h-4 text-white" />, title: t('featureVerifiedTitle'), desc: t('featureVerifiedDesc') },
-              { icon: <ShieldCheck className="w-4 h-4 text-white" />, title: t('featureSecureTitle'), desc: t('featureSecureDesc') },
-              { icon: <Clock className="w-4 h-4 text-white" />, title: t('featureRealtimeTitle'), desc: t('featureRealtimeDesc') },
-            ].map((f, i) => (
-              <div key={i} className="auth-feature-item">
-                <div className="auth-feature-icon">{f.icon}</div>
-                <div>
-                  <p className="text-white font-semibold text-sm">{f.title}</p>
-                  <p className="text-teal-200 text-xs mt-0.5">{f.desc}</p>
-                </div>
-              </div>
-            ))}
-          </div>
+          <h1 className="text-2xl font-bold tracking-tight text-foreground">{t('scholarGpt') || 'ScholarGPT'}</h1>
         </div>
-
-        <p className="relative z-10 text-teal-200 text-xs">
-          {t('copyright')}
-        </p>
       </div>
 
-      {/* ── Right Form Panel ── */}
-      <div className="auth-panel-right">
-        <div className="auth-form-card">
-
-          {/* Header */}
-          <div className="mb-7">
-            <div className="flex items-center gap-2 mb-8 lg:hidden">
-              <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: 'linear-gradient(135deg,#0d9488,#0f766e)' }}>
-                <Stethoscope className="w-4 h-4 text-white" />
-              </div>
-              <span className="font-bold text-base text-foreground">{t('brandName')}</span>
+      <div className="w-full max-w-[420px] mb-8 bg-card border border-border rounded-xl shadow-[0_10px_25px_-5px_rgba(6,76,57,0.05),0_8px_10px_-6px_rgba(6,76,57,0.05)] p-8 relative z-10 animate-in fade-in slide-in-from-bottom-8 duration-700">
+        <div className="mb-8">
+          {/* Mobile Logo Logo */}
+          <div className="flex items-center gap-2 mb-6 md:hidden">
+            <div className="size-8 bg-primary text-primary-foreground flex items-center justify-center rounded-lg shadow-sm">
+              <span className="material-symbols-outlined !text-2xl">auto_stories</span>
             </div>
-            <h2 className="text-2xl font-bold text-foreground mb-1">{t('createAccountTitle')}</h2>
-            <p className="text-muted-foreground text-sm">{t('createAccountSub')}</p>
+            <span className="font-bold text-lg text-foreground">{t('scholarGpt') || 'ScholarGPT'}</span>
+          </div>
+          
+          <h2 className="text-xl font-bold text-foreground mb-2">{t('createAccountTitle')}</h2>
+          <p className="text-sm font-medium text-muted-foreground">{t('createAccountSub')}</p>
+        </div>
+
+        {/* Error/Success Alert */}
+        {error && (
+          <div className="mb-6 p-4 rounded-xl bg-destructive/10 border border-destructive/20 flex items-start gap-3">
+            <AlertCircle className="w-5 h-5 text-destructive flex-shrink-0 mt-0.5" />
+            <p className="text-sm font-medium text-destructive">{t(error)}</p>
+          </div>
+        )}
+        {successMessage && (
+          <div className="mb-6 p-4 rounded-xl bg-primary/10 border border-primary/20 flex items-start gap-3">
+            <CheckCircle2 className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />
+            <p className="text-sm font-medium text-primary">{t(successMessage)}</p>
+          </div>
+        )}
+
+        <form onSubmit={handleSubmit} className="space-y-4">
+          {/* Full Name */}
+          <div className="space-y-1.5">
+            <label htmlFor="fullName" className="block text-sm font-medium text-foreground">{t('fullName')}</label>
+            <div className="relative">
+              <User className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+              <input
+                id="fullName"
+                name="fullName"
+                type="text"
+                placeholder={t('fullNamePlaceholder')}
+                value={formData.fullName}
+                onChange={handleChange}
+                disabled={isLoading}
+                className={`w-full pl-10 pr-4 py-2.5 bg-background border ${validationErrors.fullName ? 'border-destructive focus:ring-destructive/20 focus:border-destructive' : 'border-input focus:ring-primary/20 focus:border-primary'} text-foreground rounded-xl focus:ring-4 outline-none transition-all placeholder:text-muted-foreground font-medium`}
+              />
+            </div>
+            {validationErrors.fullName && (
+              <p className="text-xs font-medium text-destructive mt-1.5">{t(validationErrors.fullName)}</p>
+            )}
           </div>
 
-          {/* Alert */}
-          {error && (
-            <div className="med-alert-error">
-              <AlertCircle className="w-4 h-4 flex-shrink-0" />
-              <span>{t(error)}</span>
-            </div>
-          )}
-          {successMessage && (
-            <div className="med-alert-success">
-              <CheckCircle2 className="w-4 h-4 flex-shrink-0" />
-              <span>{t(successMessage)}</span>
-            </div>
-          )}
-
-          {/* Form */}
-          <form onSubmit={handleSubmit} className="space-y-4">
-
-            {/* Full Name */}
-            <div className="space-y-1.5">
-              <label className="text-sm font-medium text-foreground">{t('fullName')}</label>
-              <div className="relative">
-                <User className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                <input
-                  name="fullName"
-                  type="text"
-                  placeholder={t('fullNamePlaceholder')}
-                  value={formData.fullName}
-                  onChange={handleChange}
-                  disabled={isLoading}
-                  className={`med-input med-input-icon ${validationErrors.fullName ? 'med-input-error' : ''}`}
-                />
-              </div>
-              {validationErrors.fullName && (
-                <p className="text-xs text-destructive">{t(validationErrors.fullName)}</p>
-              )}
-            </div>
-
-            {/* Email */}
-            <div className="space-y-1.5">
-              <label className="text-sm font-medium text-foreground">{t('email')}</label>
-              <div className="relative">
-                <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                <input
-                  name="email"
-                  type="email"
-                  placeholder={t('emailPlaceholder')}
-                  value={formData.email}
-                  onChange={handleChange}
-                  disabled={isLoading}
-                  className={`med-input med-input-icon ${validationErrors.email ? 'med-input-error' : ''}`}
-                />
-              </div>
-              {validationErrors.email && (
-                <p className="text-xs text-destructive">{t(validationErrors.email)}</p>
-              )}
-            </div>
-
-            {/* Password */}
-            <div className="space-y-1.5">
-              <label className="text-sm font-medium text-foreground">{t('password')}</label>
-              <div className="relative">
-                <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                <input
-                  name="password"
-                  type="password"
-                  placeholder={t('passwordPlaceholder')}
-                  value={formData.password}
-                  onChange={handleChange}
-                  disabled={isLoading}
-                  className={`med-input med-input-icon ${validationErrors.password ? 'med-input-error' : ''}`}
-                />
-              </div>
-              {formData.password && !validationErrors.password && (
-                <div className="mt-1">
-                  <PasswordStrengthIndicator password={formData.password} />
-                </div>
-              )}
-              {validationErrors.password && (
-                <p className="text-xs text-destructive">{t(validationErrors.password)}</p>
-              )}
-            </div>
-
-            {/* Confirm Password */}
-            <div className="space-y-1.5">
-              <label className="text-sm font-medium text-foreground">{t('confirmPassword')}</label>
-              <div className="relative">
-                <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                <input
-                  name="confirmPassword"
-                  type="password"
-                  placeholder={t('confirmPasswordPlaceholder')}
-                  value={formData.confirmPassword}
-                  onChange={handleChange}
-                  disabled={isLoading}
-                  className={`med-input med-input-icon ${validationErrors.confirmPassword ? 'med-input-error' : ''}`}
-                />
-              </div>
-              {validationErrors.confirmPassword && (
-                <p className="text-xs text-destructive">{t(validationErrors.confirmPassword)}</p>
-              )}
-            </div>
-
-            {/* Terms */}
-            <div className={`flex items-start gap-3 p-3 rounded-lg border ${validationErrors.terms ? 'border-destructive/30 bg-destructive/5' : 'border-transparent bg-gray-50'}`}>
-              <Checkbox
-                id="terms"
-                checked={agreeToTerms}
-                onCheckedChange={(checked) => {
-                  setAgreeToTerms(checked as boolean);
-                  if (validationErrors.terms) {
-                    const newErrors = { ...validationErrors };
-                    delete newErrors.terms;
-                    setValidationErrors(newErrors);
-                  }
-                }}
+          {/* Email Address */}
+          <div className="space-y-1.5">
+            <label htmlFor="email" className="block text-sm font-medium text-foreground">{t('email')}</label>
+            <div className="relative">
+              <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+              <input
+                id="email"
+                name="email"
+                type="email"
+                placeholder={t('emailPlaceholder')}
+                value={formData.email}
+                onChange={handleChange}
                 disabled={isLoading}
-                className="mt-0.5 data-[state=checked]:bg-primary data-[state=checked]:border-primary"
+                className={`w-full pl-10 pr-4 py-2.5 bg-background border ${validationErrors.email ? 'border-destructive focus:ring-destructive/20 focus:border-destructive' : 'border-input focus:ring-primary/20 focus:border-primary'} text-foreground rounded-xl focus:ring-4 outline-none transition-all placeholder:text-muted-foreground font-medium`}
               />
-              <label htmlFor="terms" className="text-xs text-muted-foreground leading-relaxed cursor-pointer select-none">
-                {t('agreeTerms')}{' '}
-                <span className="text-primary font-semibold hover:underline">{t('termsLink')}</span>
-              </label>
             </div>
-            {validationErrors.terms && (
-              <p className="text-xs text-destructive -mt-2">{t(validationErrors.terms)}</p>
+            {validationErrors.email && (
+              <p className="text-xs font-medium text-destructive mt-1.5">{t(validationErrors.email)}</p>
             )}
+          </div>
 
-            {/* Submit */}
-            <button type="submit" disabled={isLoading} className="med-btn-primary">
-              {isLoading ? (
-                <><Loader2 className="w-4 h-4 animate-spin" /><span>{t('loading')}</span></>
-              ) : (
-                <span>{t('signUpButton')}</span>
-              )}
-            </button>
-          </form>
+          {/* Password */}
+          <div className="space-y-1.5">
+            <label htmlFor="password" className="block text-sm font-medium text-foreground">{t('password')}</label>
+            <div className="relative">
+              <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+              <input
+                id="password"
+                name="password"
+                type="password"
+                placeholder={t('passwordPlaceholder')}
+                value={formData.password}
+                onChange={handleChange}
+                disabled={isLoading}
+                className={`w-full pl-10 pr-4 py-2.5 bg-background border ${validationErrors.password ? 'border-destructive focus:ring-destructive/20 focus:border-destructive' : 'border-input focus:ring-primary/20 focus:border-primary'} text-foreground rounded-xl focus:ring-4 outline-none transition-all placeholder:text-muted-foreground font-medium`}
+              />
+            </div>
+            {formData.password && !validationErrors.password && (
+              <div className="mt-1">
+                <PasswordStrengthIndicator password={formData.password} />
+              </div>
+            )}
+            {validationErrors.password && (
+              <p className="text-xs font-medium text-destructive mt-1.5">{t(validationErrors.password)}</p>
+            )}
+          </div>
 
-          {/* Footer */}
-          <p className="mt-6 text-center text-sm text-muted-foreground">
+          {/* Confirm Password */}
+          <div className="space-y-1.5">
+            <label htmlFor="confirmPassword" className="block text-sm font-medium text-foreground">{t('confirmPassword')}</label>
+            <div className="relative">
+              <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+              <input
+                id="confirmPassword"
+                name="confirmPassword"
+                type="password"
+                placeholder={t('confirmPasswordPlaceholder')}
+                value={formData.confirmPassword}
+                onChange={handleChange}
+                disabled={isLoading}
+                className={`w-full pl-10 pr-4 py-2.5 bg-background border ${validationErrors.confirmPassword ? 'border-destructive focus:ring-destructive/20 focus:border-destructive' : 'border-input focus:ring-primary/20 focus:border-primary'} text-foreground rounded-xl focus:ring-4 outline-none transition-all placeholder:text-muted-foreground font-medium`}
+              />
+            </div>
+            {validationErrors.confirmPassword && (
+              <p className="text-xs font-medium text-destructive mt-1.5">{t(validationErrors.confirmPassword)}</p>
+            )}
+          </div>
+
+          {/* Terms */}
+          <div className={`flex items-start gap-3 mt-4 p-3 rounded-lg border ${validationErrors.terms ? 'border-destructive/30 bg-destructive/5' : 'border-transparent bg-muted/30'}`}>
+            <Checkbox
+              id="terms"
+              checked={agreeToTerms}
+              onCheckedChange={(checked) => {
+                setAgreeToTerms(checked as boolean);
+                if (validationErrors.terms) {
+                  const newErrors = { ...validationErrors };
+                  delete newErrors.terms;
+                  setValidationErrors(newErrors);
+                }
+              }}
+              disabled={isLoading}
+              className="mt-0.5 data-[state=checked]:bg-primary data-[state=checked]:border-primary"
+            />
+            <label htmlFor="terms" className="text-xs text-muted-foreground leading-relaxed cursor-pointer select-none">
+              {t('agreeTerms')}{' '}
+              <span className="text-primary font-semibold hover:underline">{t('termsLink')}</span>
+            </label>
+          </div>
+          {validationErrors.terms && (
+            <p className="text-xs font-medium text-destructive mt-1">{t(validationErrors.terms)}</p>
+          )}
+
+          {/* Submit Button */}
+          <button 
+            type="submit" 
+            disabled={isLoading} 
+            className="w-full bg-primary hover:bg-primary-light text-primary-foreground font-bold py-3 mt-4 rounded-xl shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2 active:scale-[0.98]"
+          >
+            {isLoading ? (
+              <><Loader2 className="w-5 h-5 animate-spin" /><span>{t('loading')}</span></>
+            ) : (
+              <span>{t('signUpButton')}</span>
+            )}
+          </button>
+        </form>
+
+        <div className="mt-8 pt-6 border-t border-border text-center">
+          <p className="text-sm font-medium text-muted-foreground">
             {t('haveAccount')}{' '}
             <button
               onClick={onLoginClick}
-              className="font-semibold text-primary hover:text-primary/80 transition-colors"
+              className="font-bold hover:underline text-primary hover:text-primary-light transition-colors"
             >
               {t('loginLink')}
             </button>
           </p>
         </div>
       </div>
-    </div>
+    </>
   );
 }

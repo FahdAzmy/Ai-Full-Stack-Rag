@@ -82,21 +82,8 @@ export function AuthManager() {
   };
 
   return (
-    <div className={`min-h-screen bg-gradient-to-br from-background via-background to-muted/30 relative overflow-hidden transition-all duration-300`}>
-      {/* Background decoration */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className={`absolute top-0 ${isRTL ? 'right-1/4' : 'left-1/4'} w-96 h-96 bg-primary/5 rounded-full blur-3xl`} />
-        <div className={`absolute bottom-0 ${isRTL ? 'left-1/4' : 'right-1/4'} w-96 h-96 bg-accent/5 rounded-full blur-3xl`} />
-      </div>
-
-      {/* Switchers - Language and Theme */}
-      <div className={`absolute top-4 ${isRTL ? 'left-4' : 'right-4'} z-50 transition-all duration-300 flex gap-2`}>
-        <ThemeSwitcher />
-        <LanguageSwitcher />
-      </div>
-
-      {/* Main Content */}
-      <div className="relative z-10">
+    <div className={`flex-1 flex flex-col items-center justify-center p-6 bg-transparent transition-all duration-300 ${isRTL ? 'rtl' : 'ltr'}`}>
+      <div className="w-full relative z-10 flex flex-col items-center">
         {renderPage()}
       </div>
     </div>

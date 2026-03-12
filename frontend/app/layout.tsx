@@ -1,6 +1,6 @@
 import React from "react"
 import type { Metadata } from 'next'
-import { Inter } from 'next/font/google'
+import { Inter, Outfit } from 'next/font/google'
 import './globals.css'
 import { LanguageProvider } from '@/lib/language-context'
 import { ThemeProvider } from '@/lib/theme-context'
@@ -13,9 +13,15 @@ const inter = Inter({
   display: 'swap',
 });
 
+const outfit = Outfit({
+  subsets: ['latin'],
+  variable: '--font-outfit',
+  display: 'swap',
+});
+
 export const metadata: Metadata = {
-  title: 'MedQuery – AI-Powered Medical Assistant',
-  description: 'Connect with verified medical professionals and get evidence-based health insights powered by AI.',
+  title: 'ScholarGPT - Modern AI Research Assistant',
+  description: 'Modern AI Research Assistant',
   colorScheme: 'light dark',
   icons: {
     icon: [
@@ -34,7 +40,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={`${inter.variable} font-sans antialiased`} suppressHydrationWarning>
+      <head>
+        <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
+      </head>
+      <body className={`${inter.variable} ${outfit.variable} font-sans antialiased`} suppressHydrationWarning>
         <Providers>
           <ThemeProvider>
             <LanguageProvider>

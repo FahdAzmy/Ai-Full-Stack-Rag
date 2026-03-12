@@ -85,152 +85,117 @@ export function VerifyEmailPage({ onSuccess, onBackClick }: VerifyEmailPageProps
   };
 
   return (
-    <div className={`auth-layout ${isRTL ? 'rtl' : 'ltr'}`}>
-
-      {/* ── Left Branding Panel ── */}
-      <div className="auth-panel-left">
-        <div className="relative z-10">
-          <div className="flex items-center gap-3 mb-16">
-            <div className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center">
-              <Stethoscope className="w-6 h-6 text-white" />
-            </div>
-            <span className="text-white font-bold text-xl tracking-tight">{t('brandName')}</span>
+    <>
+      <div className="w-full max-w-[420px] mb-8 text-center animate-in fade-in slide-in-from-bottom-4 duration-500 hidden md:block">
+        <div className="flex items-center justify-center gap-2 mb-4">
+          <div className="size-10 bg-primary text-primary-foreground flex items-center justify-center rounded-lg shadow-sm">
+            <span className="material-symbols-outlined !text-3xl">auto_stories</span>
           </div>
-
-          <h1 className="text-4xl font-bold text-white leading-tight mb-4">
-            {t('loginHeadline')}
-          </h1>
-          <p className="text-teal-100 text-base leading-relaxed mb-12">
-            {t('verifyEmailSubheadline')}
-          </p>
-
-          <div className="space-y-5">
-            {[
-              { icon: <Zap className="w-4 h-4 text-white" />, title: t('featureInstantTitle'), desc: t('featureInstantDesc') },
-              { icon: <ShieldCheck className="w-4 h-4 text-white" />, title: t('featureEvidenceTitle'), desc: t('featureEvidenceDesc') },
-              { icon: <Clock className="w-4 h-4 text-white" />, title: t('featureGuidanceTitle'), desc: t('featureGuidanceDesc') },
-            ].map((f, i) => (
-              <div key={i} className="auth-feature-item">
-                <div className="auth-feature-icon">{f.icon}</div>
-                <div>
-                  <p className="text-white font-semibold text-sm">{f.title}</p>
-                  <p className="text-teal-200 text-xs mt-0.5">{f.desc}</p>
-                </div>
-              </div>
-            ))}
-          </div>
+          <h1 className="text-2xl font-bold tracking-tight text-foreground">{t('scholarGpt') || 'ScholarGPT'}</h1>
         </div>
-
-        <p className="relative z-10 text-teal-200 text-xs">
-          {t('copyright')}
-        </p>
       </div>
 
-      {/* ── Right Form Panel ── */}
-      <div className="auth-panel-right">
-        <div className="auth-form-card">
-
-          {/* Header */}
-          <div className="mb-8">
-            <div className="flex items-center gap-2 mb-8 lg:hidden">
-              <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: 'linear-gradient(135deg,#0d9488,#0f766e)' }}>
-                <Stethoscope className="w-4 h-4 text-white" />
-              </div>
-              <span className="font-bold text-base text-foreground">{t('brandName')}</span>
+      <div className="w-full max-w-[420px] mb-8 bg-card border border-border rounded-xl shadow-[0_10px_25px_-5px_rgba(6,76,57,0.05),0_8px_10px_-6px_rgba(6,76,57,0.05)] p-8 relative z-10 animate-in fade-in slide-in-from-bottom-8 duration-700">
+        <div className="mb-6">
+          {/* Mobile Logo */}
+          <div className="flex items-center gap-2 mb-6 md:hidden">
+            <div className="size-8 bg-primary text-primary-foreground flex items-center justify-center rounded-lg shadow-sm">
+              <span className="material-symbols-outlined !text-2xl">auto_stories</span>
             </div>
-
-            {/* Mail icon */}
-            <div className="w-14 h-14 rounded-2xl flex items-center justify-center mb-5" style={{ background: 'linear-gradient(135deg,#0d9488,#0f766e)' }}>
-              <Mail className="w-7 h-7 text-white" />
-            </div>
-
-            <h2 className="text-2xl font-bold text-foreground mb-1">{t('verifyEmailTitle')}</h2>
-            <p className="text-muted-foreground text-sm">
-              {t('verifyEmailDescription')}
-              {pendingEmail && (
-                <span className="block mt-1 font-medium text-foreground">{pendingEmail}</span>
-              )}
-            </p>
+            <span className="font-bold text-lg text-foreground">{t('scholarGpt') || 'ScholarGPT'}</span>
           </div>
 
-          {/* Alerts */}
-          {error && (
-            <div className="med-alert-error">
-              <AlertCircle className="w-4 h-4 flex-shrink-0" />
-              <span>{t(error)}</span>
-            </div>
-          )}
-          {successMessage && (
-            <div className="med-alert-success">
-              <CheckCircle2 className="w-4 h-4 flex-shrink-0" />
-              <span>{t(successMessage)}</span>
-            </div>
-          )}
+          {/* Mail icon */}
+          <div className="w-14 h-14 rounded-2xl bg-primary flex items-center justify-center mb-5 shadow-sm">
+            <Mail className="w-7 h-7 text-primary-foreground" />
+          </div>
 
-          {/* Form */}
-          <form onSubmit={handleSubmit} className="space-y-5">
+          <h2 className="text-xl font-bold text-foreground mb-2">{t('verifyEmailTitle')}</h2>
+          <p className="text-sm font-medium text-muted-foreground leading-relaxed">
+            {t('verifyEmailDescription')}
+            {pendingEmail && (
+              <span className="block mt-1 font-bold text-foreground">{pendingEmail}</span>
+            )}
+          </p>
+        </div>
 
-            {/* Code input */}
-            <div className="space-y-1.5">
-              <label className="text-sm font-medium text-foreground">{t('verificationCode')}</label>
-              <input
-                id="code"
-                type="text"
-                placeholder="000000"
-                value={code}
-                onChange={handleCodeChange}
-                disabled={isLoading}
-                maxLength={6}
-                className={`med-input text-center text-2xl tracking-[0.5em] font-mono ${validationErrors.code ? 'med-input-error' : ''}`}
-              />
-              {validationErrors.code && (
-                <p className="text-xs text-destructive text-center">{t(validationErrors.code)}</p>
-              )}
-            </div>
+        {/* Alerts */}
+        {error && (
+          <div className="mb-6 p-4 rounded-xl bg-destructive/10 border border-destructive/20 flex items-start gap-3">
+            <AlertCircle className="w-5 h-5 text-destructive flex-shrink-0 mt-0.5" />
+            <p className="text-sm font-medium text-destructive">{t(error)}</p>
+          </div>
+        )}
+        {successMessage && (
+          <div className="mb-6 p-4 rounded-xl bg-primary/10 border border-primary/20 flex items-start gap-3">
+            <CheckCircle2 className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />
+            <p className="text-sm font-medium text-primary">{t(successMessage)}</p>
+          </div>
+        )}
 
-            {/* Resend */}
-            <div className="text-center">
-              <button
-                type="button"
-                onClick={handleResendCode}
-                disabled={!canResend || isLoading}
-                className={`inline-flex items-center gap-1.5 text-sm font-medium transition-colors ${
-                  canResend
-                    ? 'text-primary hover:text-primary/80 cursor-pointer'
-                    : 'text-muted-foreground cursor-not-allowed'
-                }`}
-              >
-                <RefreshCw className="w-3.5 h-3.5" />
-                {t('resendCode')}
-                {!canResend && <span className="opacity-60">({timeLeft}s)</span>}
-              </button>
-            </div>
+        {/* Form */}
+        <form onSubmit={handleSubmit} className="space-y-5">
 
-            {/* Submit */}
-            <button
-              type="submit"
-              disabled={isLoading || code.length !== 6}
-              className="med-btn-primary"
-            >
-              {isLoading ? (
-                <><Loader2 className="w-4 h-4 animate-spin" /><span>{t('loading')}</span></>
-              ) : (
-                <span>{t('verifyButton')}</span>
-              )}
-            </button>
+          {/* Code input */}
+          <div className="space-y-1.5">
+            <label htmlFor="code" className="block text-sm font-medium text-foreground">{t('verificationCode')}</label>
+            <input
+              id="code"
+              type="text"
+              placeholder="000000"
+              value={code}
+              onChange={handleCodeChange}
+              disabled={isLoading}
+              maxLength={6}
+              className={`w-full py-3 bg-background border ${validationErrors.code ? 'border-destructive focus:ring-destructive/20 focus:border-destructive' : 'border-input focus:ring-primary/20 focus:border-primary'} text-foreground rounded-xl focus:ring-4 outline-none transition-all placeholder:text-muted-foreground font-mono text-center text-2xl tracking-[0.5em] font-bold shadow-sm`}
+            />
+            {validationErrors.code && (
+              <p className="text-xs font-medium text-destructive text-center mt-1.5">{t(validationErrors.code)}</p>
+            )}
+          </div>
 
-            {/* Back */}
+          {/* Resend */}
+          <div className="text-center">
             <button
               type="button"
-              onClick={onBackClick}
-              disabled={isLoading}
-              className="med-btn-ghost"
+              onClick={handleResendCode}
+              disabled={!canResend || isLoading}
+              className={`inline-flex items-center gap-1.5 text-sm font-bold transition-colors ${
+                canResend
+                  ? 'text-primary hover:text-primary-light cursor-pointer hover:underline'
+                  : 'text-muted-foreground cursor-not-allowed opacity-60'
+              }`}
             >
-              {t('backToLogin')}
+              <RefreshCw className="w-3.5 h-3.5" />
+              {t('resendCode')}
+              {!canResend && <span className="opacity-80 ml-1">({timeLeft}s)</span>}
             </button>
-          </form>
-        </div>
+          </div>
+
+          {/* Submit */}
+          <button
+            type="submit"
+            disabled={isLoading || code.length !== 6}
+            className="w-full bg-primary hover:bg-primary-light text-primary-foreground font-bold py-3 mt-2 rounded-xl shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2 active:scale-[0.98] disabled:opacity-70 disabled:cursor-not-allowed"
+          >
+            {isLoading ? (
+              <><Loader2 className="w-5 h-5 animate-spin" /><span>{t('loading')}</span></>
+            ) : (
+              <span>{t('verifyButton')}</span>
+            )}
+          </button>
+
+          {/* Back */}
+          <button
+            type="button"
+            onClick={onBackClick}
+            disabled={isLoading}
+            className="w-full bg-transparent hover:bg-muted text-foreground font-bold py-3 rounded-xl transition-all border border-border mt-3"
+          >
+            {t('backToLogin')}
+          </button>
+        </form>
       </div>
-    </div>
+    </>
   );
 }
