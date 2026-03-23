@@ -1,6 +1,6 @@
 # SPEC-08: Async Processing & Optimization
 
-> **Status:** 🔲 Todo  
+> **Status:** ✅ Done  
 > **Dependencies:** SPEC-03 (Ingestion Pipeline)  
 > **Priority:** P1 — Performance  
 > **Estimated effort:** 3–4 days  

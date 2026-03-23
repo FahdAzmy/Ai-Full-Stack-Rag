@@ -1,9 +1,13 @@
 """
-Embedding Service — Generate vector embeddings via OpenRouter.
+Embedding Service — Generate vector embeddings via any OpenAI-compatible API.
 
 Architecture:
   - EmbeddingService class: injectable, testable, SOLID-compliant
   - Module-level facade functions: backward-compatible entry points
+
+Provider-agnostic: set EMBEDDING_API_KEY + EMBEDDING_BASE_URL in .env
+to use any provider (OpenAI, Gemini, DeepSeek, etc.).
+Falls back to OPENROUTER_API_KEY + OPENROUTER_BASE_URL if not set.
 
 The class accepts an OpenAI client via constructor injection (DIP),
 making it easy to swap providers or mock in tests.
@@ -23,8 +27,8 @@ logger = logging.getLogger(__name__)
 
 # ── Module-level client (backward-compatible, mockable by tests) ─────────────
 client = OpenAI(
-    api_key=settings.OPENROUTER_API_KEY,
-    base_url=settings.OPENROUTER_BASE_URL,
+    api_key=settings.get_embedding_api_key(),
+    base_url=settings.get_embedding_base_url(),
     timeout=30.0,
 )
 

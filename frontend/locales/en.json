@@ -190,5 +190,22 @@
     "docStatusUploading": "Uploading",
     "docPaginationText": "Showing 1 to 5 of 48 documents",
     "docPaginationPrev": "Previous",
-    "docPaginationNext": "Next"
+    "docPaginationNext": "Next",
+    "academicWorkspace": "Academic Workspace",
+    "chatDocuments": "Documents ",
+    "untitledChat": "Untitled Chat",
+    "today": "Today",
+    "yesterday": "Yesterday",
+    "chatMsgCount": "msgs",
+    "chatEmptyState": "No conversations yet. Start a new one!",
+    "chatRename": "Rename",
+    "chatConfirmDelete": "Click to confirm",
+    "chatDelete": "Delete",
+    "chatConfiguration": "Configuration",
+    "guestUser": "Guest User",
+    "freePlan": "Free Plan",
+    "theme": "Theme",
+    "systemTheme": "System",
+    "lightTheme": "Light",
+    "darkTheme": "Dark"
 }

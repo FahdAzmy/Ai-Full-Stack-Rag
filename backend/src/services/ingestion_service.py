@@ -118,10 +118,15 @@ class IngestionPipeline:
     # ── Step 2: Race Condition Guard ─────────────────────────────────────
 
     def _can_process(self) -> bool:
-        """Check if the document is in a processable state."""
-        if self._document.status != "uploading":
+        """Check if the document is in a processable state.
+        
+        Accepts both 'uploading' (legacy) and 'processing' (SPEC-08)
+        since the controller now sets status to 'processing' before
+        the Celery worker picks up the task.
+        """
+        if self._document.status not in ("uploading", "processing"):
             logger.warning(
-                "[doc=%s] Status is '%s', expected 'uploading'. Skipping.",
+                "[doc=%s] Status is '%s', expected 'uploading' or 'processing'. Skipping.",
                 self._document_id,
                 self._document.status,
             )

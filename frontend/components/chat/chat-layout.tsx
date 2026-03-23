@@ -1,8 +1,9 @@
 'use client';
 
 import { useRef, useEffect, useState } from 'react';
-import { useSelector } from 'react-redux';
-import { RootState } from '@/store/store';
+import { useSelector, useDispatch } from 'react-redux';
+import { RootState, AppDispatch } from '@/store/store';
+import { setSidebarOpen } from '@/store/chat/chat-slice';
 import { ChatMessages } from './chat-messages';
 import { ChatInput } from './chat-input';
 import { DocumentSidebar } from '@/components/documents/document-sidebar';
@@ -10,7 +11,8 @@ import { useLanguage } from '@/lib/language-context';
 
 export function ChatLayout() {
   const { t } = useLanguage();
-  const { activeChat, querying, loading } = useSelector((state: RootState) => state.chat);
+  const dispatch = useDispatch<AppDispatch>();
+  const { activeChat, querying, loading, sidebarOpen } = useSelector((state: RootState) => state.chat);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const [docSidebarOpen, setDocSidebarOpen] = useState(true);
 
@@ -28,27 +30,18 @@ export function ChatLayout() {
         {/* Header */}
         <header className="h-16 border-b border-border-cream dark:border-gray-800 flex items-center justify-between px-8 bg-white/80 dark:bg-background-dark/80 backdrop-blur-md sticky top-0 z-10 transition-colors shrink-0">
           <div className="flex items-center gap-4 min-w-0">
-            <span className="material-symbols-outlined text-primary/40 dark:text-emerald-500/40">menu_open</span>
+            <button 
+              onClick={() => dispatch(setSidebarOpen(!sidebarOpen))}
+              className="p-1 -ml-2 text-primary/60 dark:text-emerald-500/60 hover:text-primary dark:hover:text-emerald-400 transition-colors rounded-md"
+            >
+              <span className="material-symbols-outlined">{sidebarOpen ? 'menu_open' : 'menu'}</span>
+            </button>
             <h2 className="text-sm font-semibold text-primary dark:text-emerald-400 truncate">
               {activeChat ? chatTitle : (t('chatWelcome') || 'Welcome to ScholarGPT')}
             </h2>
           </div>
 
-          {/* Toggle document sidebar button */}
-          <button
-            onClick={() => setDocSidebarOpen(!docSidebarOpen)}
-            className={`
-              p-2 rounded-lg transition-colors hidden lg:flex items-center gap-2
-              ${docSidebarOpen
-                ? 'text-primary bg-primary/5 dark:bg-primary/10'
-                : 'text-slate-400 hover:text-primary hover:bg-primary/5'
-              }
-            `}
-            title={t('toggleDocPanel') || 'Toggle documents panel'}
-          >
-            <span className="material-symbols-outlined text-lg">description</span>
-            <span className="text-xs font-semibold">{t('chatDocuments') || 'Documents'}</span>
-          </button>
+          
         </header>
 
         {/* Chat Area */}
@@ -63,11 +56,6 @@ export function ChatLayout() {
         <ChatInput />
       </div>
 
-      {/* Right Document Sidebar */}
-      <DocumentSidebar
-        isOpen={docSidebarOpen}
-        onToggle={() => setDocSidebarOpen(!docSidebarOpen)}
-      />
     </div>
   );
 }

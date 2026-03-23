@@ -1,8 +1,12 @@
 """
-LLM Service — Generate answers using OpenAI-compatible API (via OpenRouter).
+LLM Service — Generate answers using any OpenAI-compatible API.
 
 Supports both complete (blocking) and streaming responses.
 Uses AsyncOpenAI to avoid blocking the FastAPI event loop.
+
+Provider-agnostic: set LLM_API_KEY + LLM_BASE_URL in .env to use
+any OpenAI-compatible provider (OpenAI, Gemini, DeepSeek, Groq, etc.).
+Falls back to OPENROUTER_API_KEY + OPENROUTER_BASE_URL if not set.
 """
 
 from openai import AsyncOpenAI
@@ -12,8 +16,8 @@ from src.helpers.logging_config import get_logger
 logger = get_logger("llm")
 
 client = AsyncOpenAI(
-    api_key=settings.OPENROUTER_API_KEY,
-    base_url=settings.OPENROUTER_BASE_URL,
+    api_key=settings.get_llm_api_key(),
+    base_url=settings.get_llm_base_url(),
 )
 
 

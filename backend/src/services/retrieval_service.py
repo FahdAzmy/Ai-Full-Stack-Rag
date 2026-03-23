@@ -162,3 +162,126 @@ async def search_similar_chunks(
         }
         for row in rows
     ]
+
+
+# ═════════════════════════════════════════════════════════════════════════════
+#  Hybrid Search (SPEC-08) — Vector + Keyword combined
+# ═════════════════════════════════════════════════════════════════════════════
+
+
+async def hybrid_search(
+    query: str,
+    user_id: str,
+    db: AsyncSession,
+    top_k: int = 5,
+    vector_weight: float = 0.7,
+    keyword_weight: float = 0.3,
+    document_ids: list[str] | None = None,
+    *,
+    embedder: Callable | None = None,
+) -> list[dict]:
+    """
+    Hybrid search combining vector similarity and keyword matching.
+
+    Ranking formula:
+      combined_score = (vector_weight × cosine_similarity) + (keyword_weight × keyword_rank)
+
+    Args:
+        query: The user's search text.
+        user_id: UUID of the authenticated user (for data isolation).
+        db: Async database session.
+        top_k: Maximum number of results to return (default: 5).
+        vector_weight: Weight for semantic similarity (default: 0.7).
+        keyword_weight: Weight for keyword relevance (default: 0.3).
+        document_ids: Optional list of document UUIDs to restrict search.
+        embedder: Callable to generate a single embedding (DI).
+                 Defaults to generate_single_embedding.
+
+    Returns:
+        List of dicts with: chunk_id, content, page_number, chunk_index,
+        document_id, file_name, title, author, year, journal, doi, similarity.
+
+    Raises:
+        ValueError: If query is not a string or user_id is not a valid UUID.
+    """
+    # ── Input validation ─────────────────────────────────────────────────
+    if not isinstance(query, str):
+        raise ValueError("Query must be a string.")
+
+    _validate_user_id(user_id)
+
+    # Use injected embedder or default
+    _embedder = embedder or generate_single_embedding
+
+    # 1. Generate query embedding
+    query_preview = query[:80] if query else "(empty)"
+    logger.info("Hybrid search — embedding query: '%s...'", query_preview)
+    query_embedding = _embedder(query)
+
+    # 2. Validate & format embedding for pgvector
+    _validate_embedding(query_embedding)
+    embedding_str = "[" + ",".join(str(x) for x in query_embedding) + "]"
+
+    # 3. Build SQL query combining vector + keyword scoring
+    # NOTE: CAST(:embedding AS vector) avoids asyncpg :: confusion.
+    sql = """
+        SELECT
+            dc.id AS chunk_id,
+            dc.content,
+            dc.page_number,
+            dc.chunk_index,
+            dc.document_id,
+            d.file_name, d.title, d.author, d.year, d.journal, d.doi,
+            (
+                :vector_weight * (1 - (dc.embedding <=> CAST(:embedding AS vector))) +
+                :keyword_weight * COALESCE(ts_rank(dc.content_tsv, plainto_tsquery('english', :query_text)), 0)
+            ) AS similarity
+        FROM document_chunks dc
+        JOIN documents d ON dc.document_id = d.id
+        WHERE dc.user_id = :user_id
+          AND d.status = 'ready'
+    """
+
+    params: dict = {
+        "embedding": embedding_str,
+        "query_text": query,
+        "user_id": user_id,
+        "vector_weight": vector_weight,
+        "keyword_weight": keyword_weight,
+        "top_k": top_k,
+    }
+
+    # Optional: filter by specific documents
+    if document_ids:
+        sql += " AND CAST(dc.document_id AS text) = ANY(:doc_ids)"
+        params["doc_ids"] = document_ids
+
+    sql += """
+        ORDER BY similarity DESC
+        LIMIT :top_k
+    """
+
+    # 4. Execute query
+    result = await db.execute(text(sql), params)
+    rows = result.mappings().all()
+
+    logger.info("Hybrid search returned %d chunks", len(rows))
+
+    # 5. Format results
+    return [
+        {
+            "chunk_id": str(row["chunk_id"]),
+            "content": row["content"],
+            "page_number": row["page_number"],
+            "chunk_index": row["chunk_index"],
+            "document_id": str(row["document_id"]),
+            "file_name": row["file_name"],
+            "title": row["title"],
+            "author": row["author"],
+            "year": row["year"],
+            "journal": row["journal"],
+            "doi": row["doi"],
+            "similarity": round(float(row["similarity"]), 4),
+        }
+        for row in rows
+    ]

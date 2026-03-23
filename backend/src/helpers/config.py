@@ -44,11 +44,33 @@ class Settings(BaseSettings):
     STORAGE_BUCKET: str = "documents"
     MAX_FILE_SIZE_MB: int = 50
 
-    # OpenRouter (SPEC-03) — OpenAI-compatible API
+    # ── Provider Config (OpenAI-compatible) ─────────────────────────────
+    # Default/fallback keys — used if LLM_* or EMBEDDING_* aren't set.
+    # Works with: OpenRouter, OpenAI, Gemini, DeepSeek, Groq, etc.
     OPENROUTER_API_KEY: str = ""
     OPENROUTER_BASE_URL: str = "https://openrouter.ai/api/v1"
 
-    # Embedding (SPEC-03)
+    # LLM Provider — for chat completions (generate_answer, streaming)
+    # Set these to override the default OpenRouter provider.
+    # Examples:
+    #   OpenAI:    LLM_BASE_URL=https://api.openai.com/v1
+    #   Gemini:    LLM_BASE_URL=https://generativelanguage.googleapis.com/v1beta/openai
+    #   DeepSeek:  LLM_BASE_URL=https://api.deepseek.com/v1
+    #   Groq:      LLM_BASE_URL=https://api.groq.com/openai/v1
+    LLM_API_KEY: str = ""
+    LLM_BASE_URL: str = ""
+    LLM_MODEL: str = "gpt-4o-mini"
+    LLM_TITLE_MODEL: str = "gpt-4o-mini"
+    LLM_MAX_TOKENS: int = 2000
+    LLM_TEMPERATURE: float = 0.3
+
+    # Embedding Provider — for vector embeddings
+    # Set these to override the default OpenRouter provider.
+    # Examples:
+    #   OpenAI:    EMBEDDING_BASE_URL=https://api.openai.com/v1
+    #   Gemini:    EMBEDDING_BASE_URL=https://generativelanguage.googleapis.com/v1beta/openai
+    EMBEDDING_API_KEY: str = ""
+    EMBEDDING_BASE_URL: str = ""
     EMBEDDING_MODEL: str = "openai/text-embedding-3-small"
     EMBEDDING_DIMENSIONS: int = 1536
 
@@ -61,11 +83,26 @@ class Settings(BaseSettings):
     CHUNK_OVERLAP: int = 120
     MIN_CHUNK_LENGTH: int = 50
 
-    # LLM (SPEC-05)
-    LLM_MODEL: str = "gpt-4o-mini"
-    LLM_TITLE_MODEL: str = "gpt-4o-mini"
-    LLM_MAX_TOKENS: int = 2000
-    LLM_TEMPERATURE: float = 0.3
+    def get_llm_api_key(self) -> str:
+        """Get LLM API key — falls back to OPENROUTER_API_KEY."""
+        return self.LLM_API_KEY or self.OPENROUTER_API_KEY
+
+    def get_llm_base_url(self) -> str:
+        """Get LLM base URL — falls back to OPENROUTER_BASE_URL."""
+        return self.LLM_BASE_URL or self.OPENROUTER_BASE_URL
+
+    def get_embedding_api_key(self) -> str:
+        """Get Embedding API key — falls back to OPENROUTER_API_KEY."""
+        return self.EMBEDDING_API_KEY or self.OPENROUTER_API_KEY
+
+    def get_embedding_base_url(self) -> str:
+        """Get Embedding base URL — falls back to OPENROUTER_BASE_URL."""
+        return self.EMBEDDING_BASE_URL or self.OPENROUTER_BASE_URL
+
+    # Redis / Celery (SPEC-08)
+    REDIS_URL: str = "redis://localhost:6379/0"
+    CELERY_BROKER_URL: str = "redis://localhost:6379/0"
+    CELERY_RESULT_BACKEND: str = "redis://localhost:6379/1"
 
     def get_database_url(self) -> str:
         # If DATABASE_URL is provided in .env, use it (and make sure it uses asyncpg)

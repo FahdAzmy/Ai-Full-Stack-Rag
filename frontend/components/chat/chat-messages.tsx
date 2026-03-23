@@ -63,8 +63,8 @@ export function ChatMessages({ messages, isTyping, messagesEndRef, loading }: Ch
           )
         )}
 
-        {/* Typing indicator */}
-        {isTyping && (
+        {/* Typing indicator - Only show if we haven't started streaming yet */}
+        {isTyping && !messages.some(m => m.id === 'streaming') && (
           <div className="flex gap-4 animate-in fade-in-0 slide-in-from-bottom-4 duration-300">
             <div className="size-10 rounded-lg bg-teal-100 dark:bg-teal-900/40 flex items-center justify-center shrink-0">
               <svg className="w-5 h-5 text-teal-600 dark:text-teal-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
@@ -116,11 +116,7 @@ function AssistantMessage({ message }: { message: MessageResponse }) {
         />
         <div className="flex items-center gap-4">
           <span className="text-[10px] text-slate-400 font-medium">{formatTime(message.created_at)}</span>
-          <div className="flex gap-2">
-            <button className="text-slate-400 hover:text-primary dark:hover:text-emerald-400 transition-colors"><span className="material-symbols-outlined text-sm">thumb_up</span></button>
-            <button className="text-slate-400 hover:text-primary dark:hover:text-emerald-400 transition-colors"><span className="material-symbols-outlined text-sm">content_copy</span></button>
-            <button className="text-slate-400 hover:text-primary dark:hover:text-emerald-400 transition-colors"><span className="material-symbols-outlined text-sm">refresh</span></button>
-          </div>
+          {/* s */}
           {/* View Sources button */}
           {hasSources && (
             <button

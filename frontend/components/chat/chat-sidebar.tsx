@@ -14,6 +14,7 @@ import {
   deleteChat,
   renameChat,
 } from '@/store/chat/chat-actions';
+import { setActiveChat, setSidebarOpen } from '@/store/chat/chat-slice';
 
 interface ChatSidebarProps {
   isOpen: boolean;
@@ -35,6 +36,12 @@ export function ChatSidebar({ isOpen, activeView }: ChatSidebarProps) {
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
   const settingsRef = useRef<HTMLDivElement>(null);
   const renameInputRef = useRef<HTMLInputElement>(null);
+
+  const handleCloseMobile = () => {
+    if (window.innerWidth < 1024) {
+      dispatch(setSidebarOpen(false));
+    }
+  };
 
   // Fetch chats on mount
   useEffect(() => {
@@ -65,14 +72,16 @@ export function ChatSidebar({ isOpen, activeView }: ChatSidebarProps) {
     router.push('/');
   };
 
-  const handleNewChat = async () => {
-    await dispatch(createChat(undefined));
+  const handleNewChat = () => {
+    dispatch(setActiveChat(null));
     router.push('/chat');
+    handleCloseMobile();
   };
 
   const handleSelectChat = (chatId: string) => {
     dispatch(fetchChat(chatId));
     router.push('/chat');
+    handleCloseMobile();
   };
 
   const handleDeleteChat = (chatId: string) => {
@@ -119,7 +128,7 @@ export function ChatSidebar({ isOpen, activeView }: ChatSidebarProps) {
     <>
       {/* Mobile overlay */}
       {isOpen && (
-        <div className="fixed inset-0 bg-black/30 z-20 lg:hidden" onClick={() => {}} />
+        <div className="fixed inset-0 bg-black/30 z-20 lg:hidden" onClick={() => dispatch(setSidebarOpen(false))} />
       )}
 
       {/* Sidebar */}
@@ -143,13 +152,7 @@ export function ChatSidebar({ isOpen, activeView }: ChatSidebarProps) {
         
         <nav className="flex-1 px-3 space-y-1 overflow-y-auto chat-scrollbar pb-4">
           {/* Navigation buttons */}
-          <button 
-            onClick={() => router.push('/chat')}
-            className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-colors ${activeView === 'chat' ? 'bg-primary/10 text-primary dark:bg-primary/20 dark:text-primary-light' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800'}`}
-          >
-            <span className="material-symbols-outlined text-[22px]">chat_bubble</span>
-            <span className="text-sm font-medium">{t('chatChats')}</span>
-          </button>
+      
           
           <button 
             onClick={() => router.push('/documents')}
@@ -226,7 +229,7 @@ export function ChatSidebar({ isOpen, activeView }: ChatSidebarProps) {
                         </p>
                         <p className="text-[10px] text-slate-400 dark:text-slate-500">
                           {formatDate(chat.last_message_at || chat.created_at)}
-                          {chat.message_count > 0 && ` • ${chat.message_count} msgs`}
+                          {chat.message_count > 0 && ` • ${chat.message_count} ${t('chatMsgCount') || 'msgs'}`}
                         </p>
                       </button>
                     )}
@@ -297,27 +300,27 @@ export function ChatSidebar({ isOpen, activeView }: ChatSidebarProps) {
 
                  <div className="p-2 border-t border-slate-50 dark:border-slate-700/50">
                    <p className="px-2 pb-2 text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">
-                     Theme
+                     {t('theme') || 'Theme'}
                    </p>
                    <div className="grid grid-cols-3 gap-1 bg-slate-50 dark:bg-slate-900/50 p-1 rounded-xl">
                      <button 
                        onClick={() => setTheme('light')}
                        className={`flex items-center justify-center p-2 rounded-lg transition-all ${theme === 'light' ? 'bg-white dark:bg-slate-700 text-primary shadow-sm' : 'text-slate-400 hover:text-slate-600 dark:text-slate-500 dark:hover:text-slate-300'}`}
-                       title="Light"
+                       title={t('lightTheme') || 'Light'}
                      >
                        <span className="material-symbols-outlined text-base">light_mode</span>
                      </button>
                      <button 
                        onClick={() => setTheme('dark')}
                        className={`flex items-center justify-center p-2 rounded-lg transition-all ${theme === 'dark' ? 'bg-white dark:bg-slate-700 text-primary shadow-sm' : 'text-slate-400 hover:text-slate-600 dark:text-slate-500 dark:hover:text-slate-300'}`}
-                       title="Dark"
+                       title={t('darkTheme') || 'Dark'}
                      >
                        <span className="material-symbols-outlined text-base">dark_mode</span>
                      </button>
                      <button 
                        onClick={() => setTheme('system')}
                        className={`flex items-center justify-center p-2 rounded-lg transition-all ${theme === 'system' ? 'bg-white dark:bg-slate-700 text-primary shadow-sm' : 'text-slate-400 hover:text-slate-600 dark:text-slate-500 dark:hover:text-slate-300'}`}
-                       title="System"
+                       title={t('systemTheme') || 'System'}
                      >
                        <span className="material-symbols-outlined text-base">settings_brightness</span>
                      </button>

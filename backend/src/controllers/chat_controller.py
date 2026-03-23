@@ -12,8 +12,10 @@ from src.models.db_scheams.Chat import Chat
 from src.models.db_scheams.Message import Message
 from src.models.db_scheams.document import Document
 from src.services.retrieval_service import search_similar_chunks
+import json
+from fastapi.responses import StreamingResponse
 from src.services.context_builder import build_prompt, get_source_summary
-from src.services.llm_service import generate_answer, generate_chat_title
+from src.services.llm_service import generate_answer, generate_chat_title, generate_answer_stream
 from src.models.db_scheams.user import User
 from src.helpers.logging_config import get_logger
 
@@ -392,3 +394,96 @@ async def get_messages(
         "total": total,
         "has_more": has_more,
     }
+
+
+async def stream_query_chat(
+    chat_id: str,
+    question: str,
+    document_ids: list[str] | None,
+    current_user: User,
+    db: AsyncSession,
+) -> StreamingResponse:
+    """Process a research question through RAG and stream the answer via SSE."""
+    # 1. Verify chat belongs to user
+    chat = await _get_user_chat(chat_id, current_user.id, db)
+
+    # 2. Check user has ready documents
+    ready_count = await _count_ready_documents(current_user.id, db)
+    if ready_count == 0:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="You have no processed documents. Please upload PDFs first.",
+        )
+
+    # 3. Get conversation history
+    history = await _get_chat_history(chat.id, db, limit=10)
+
+    # 4. Retrieve relevant chunks (SPEC-04)
+    try:
+        chunks = await search_similar_chunks(
+            query=question,
+            user_id=str(current_user.id),
+            db=db,
+            top_k=5,
+            document_ids=document_ids,
+        )
+    except Exception as e:
+        logger.error("Retrieval failed for stream chat=%s: %s", chat_id, str(e))
+        user_msg = Message(chat_id=chat.id, role="user", content=question)
+        db.add(user_msg)
+        await db.commit()
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to retrieve relevant documents. Please try again.",
+        )
+
+    # 5. Save user message FIRST
+    user_msg = Message(
+        chat_id=chat.id,
+        role="user",
+        content=question,
+    )
+    db.add(user_msg)
+    await db.flush()  # Assign ID without committing
+
+    # 6. Build prompt (SPEC-04)
+    messages = build_prompt(question, chunks, history)
+    sources = get_source_summary(chunks)
+
+    # 7. SSE Generator
+    async def event_generator():
+        # Yield sources info first
+        yield f"data: {json.dumps({'type': 'sources', 'sources': sources})}\n\n".encode("utf-8")
+        
+        full_answer = ""
+        try:
+            # Stream the answer chunks
+            async for chunk in generate_answer_stream(messages):
+                full_answer += chunk
+                yield f"data: {json.dumps({'type': 'chunk', 'content': chunk})}\n\n".encode("utf-8")
+            
+            # Save assistant message
+            assistant_msg = Message(
+                chat_id=chat.id,
+                role="assistant",
+                content=full_answer,
+                source_chunks=sources,
+            )
+            db.add(assistant_msg)
+            
+            if chat.title is None:
+                try:
+                    chat.title = await generate_chat_title(question)
+                except Exception as e:
+                    logger.warning("Stream title generation failed: %s", str(e))
+            
+            await db.commit()
+            await db.refresh(assistant_msg)
+            
+            yield f"data: {json.dumps({'type': 'done', 'message_id': str(assistant_msg.id), 'sources': sources, 'chat_title': chat.title})}\n\n".encode("utf-8")
+        except Exception as e:
+            await db.commit()
+            logger.error("Stream generation failed for chat=%s: %s", chat_id, str(e))
+            yield f"data: {json.dumps({'type': 'error', 'error': str(e)})}\n\n".encode("utf-8")
+            
+    return StreamingResponse(event_generator(), media_type="text/event-stream")
