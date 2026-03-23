@@ -62,7 +62,7 @@ export function ChatInput() {
       const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
       const token = getAccessToken();
       
-      const response = await fetch(`${apiUrl}/chats/${chatId}/query/stream`, {
+      let response = await fetch(`${apiUrl}/chats/${chatId}/query/stream`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -73,6 +73,34 @@ export function ChatInput() {
           document_ids: selectedDocumentIds.length > 0 ? selectedDocumentIds : null
         })
       });
+
+      // Handle token expiration explicitly for this manual fetch call
+      if (response.status === 401) {
+        try {
+          const axiosMod = await import('@/lib/axios');
+          const refreshRes = await axiosMod.default.post('/refresh'); 
+          const newToken = refreshRes.data.access_token;
+          axiosMod.setAccessToken(newToken);
+          
+          // Retry with new token
+          response = await fetch(`${apiUrl}/chats/${chatId}/query/stream`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${newToken}`
+            },
+            body: JSON.stringify({
+              question: questionToAsk,
+              document_ids: selectedDocumentIds.length > 0 ? selectedDocumentIds : null
+            })
+          });
+        } catch (refreshErr) {
+          if (typeof window !== 'undefined') {
+            window.location.href = '/login';
+          }
+          throw new Error('Session expired. Please log in again.');
+        }
+      }
 
       if (!response.ok) {
         throw new Error('Query failed');
