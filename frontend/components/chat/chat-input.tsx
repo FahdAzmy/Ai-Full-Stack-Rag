@@ -4,7 +4,16 @@ import { useLanguage } from '@/lib/language-context';
 import { useState, useRef, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { AppDispatch, RootState } from '@/store/store';
-import { sendQuery } from '@/store/chat/chat-actions';
+import { 
+  appendUserMessage, 
+  startStreamingMessage, 
+  appendTokenToStreamingMessage, 
+  finalizeStreamingMessage, 
+  setQuerying, 
+  setChatError 
+} from '@/store/chat/chat-slice';
+import { getAccessToken } from '@/lib/axios';
+import { createChat } from '@/store/chat/chat-actions';
 
 export function ChatInput() {
   const { t } = useLanguage();
@@ -15,21 +24,112 @@ export function ChatInput() {
   const [value, setValue] = useState('');
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
-  const handleSubmit = () => {
-    if (!value.trim() || querying || !activeChat) return;
+  const handleSubmit = async () => {
+    if (!value.trim() || querying) return;
 
-    dispatch(
-      sendQuery({
-        chatId: activeChat.id,
-        question: value.trim(),
-        documentIds: selectedDocumentIds.length > 0 ? selectedDocumentIds : undefined,
-      })
-    );
-
+    const questionToAsk = value.trim();
     setValue('');
-    // Reset textarea height
     if (inputRef.current) {
       inputRef.current.style.height = 'auto';
+    }
+
+    dispatch(setQuerying(true));
+
+    let chatId = activeChat?.id;
+
+    if (!chatId) {
+      // Create chat first! This thunk automatically sets the new chat as activeChat in Redux
+      try {
+        const actionResult = await dispatch(createChat(undefined)).unwrap();
+        chatId = actionResult.id;
+      } catch (err: any) {
+        dispatch(setChatError(err.message || 'Failed to create chat'));
+        dispatch(setQuerying(false));
+        return;
+      }
+    }
+
+    // Optimistic user message matches the now-active chat
+    dispatch(appendUserMessage({
+      id: `temp-${Date.now()}`,
+      role: 'user',
+      content: questionToAsk,
+      source_chunks: null,
+      created_at: new Date().toISOString(),
+    }));
+
+    try {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+      const token = getAccessToken();
+      
+      const response = await fetch(`${apiUrl}/chats/${chatId}/query/stream`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+        },
+        body: JSON.stringify({
+          question: questionToAsk,
+          document_ids: selectedDocumentIds.length > 0 ? selectedDocumentIds : null
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error('Query failed');
+      }
+
+      const reader = response.body?.getReader();
+      const decoder = new TextDecoder();
+      let streamStarted = false;
+      let buffer = '';
+
+      if (reader) {
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          
+          buffer += decoder.decode(value, { stream: true });
+          const lines = buffer.split('\n');
+          // The last element in lines could be an incomplete chunk, so we keep it in the buffer
+          buffer = lines.pop() || ''; 
+
+          for (const line of lines) {
+            if (line.trim() === '') continue;
+            if (line.startsWith('data: ')) {
+              const dataStr = line.slice(6);
+              if (!dataStr) continue;
+              
+              try {
+                const data = JSON.parse(dataStr);
+                
+                if (data.type === 'sources') {
+                  dispatch(startStreamingMessage({ sources: data.sources }));
+                  streamStarted = true;
+                } else if (data.type === 'chunk') {
+                  if (!streamStarted) {
+                    dispatch(startStreamingMessage({ sources: null }));
+                    streamStarted = true;
+                  }
+                  dispatch(appendTokenToStreamingMessage(data.content));
+                } else if (data.type === 'done') {
+                  dispatch(finalizeStreamingMessage({ 
+                    id: data.message_id, 
+                    sources: data.sources,
+                    title: data.chat_title
+                  }));
+                } else if (data.type === 'error') {
+                  throw new Error(data.error);
+                }
+              } catch (e) {
+                console.error('Error parsing SSE line:', line, e);
+              }
+            }
+          }
+        }
+      }
+    } catch (err: any) {
+      dispatch(setChatError(err.message || 'An error occurred'));
+      dispatch(setQuerying(false));
     }
   };
 
@@ -48,7 +148,7 @@ export function ChatInput() {
     }
   }, [value]);
 
-  const isDisabled = querying || !activeChat;
+  const isDisabled = querying;
 
   return (
     <div className="p-6 bg-white dark:bg-background-dark border-t border-border-cream dark:border-gray-800 transition-colors">
@@ -75,11 +175,9 @@ export function ChatInput() {
             disabled={isDisabled}
             className="w-full bg-transparent border-none focus:ring-0 focus:outline-none text-sm text-primary dark:text-emerald-100 placeholder-primary/40 dark:placeholder-emerald-500/40 min-h-[100px] resize-none px-4 pt-4 disabled:cursor-not-allowed"
             placeholder={
-              !activeChat
-                ? (t('chatSelectOrCreate') || 'Select or create a chat to start...')
-                : querying
-                  ? (t('chatGenerating') || 'Generating response...')
-                  : (t('chatPlaceholder') || 'Ask ScholarGPT about research papers, methodologies, or data...')
+              querying
+                ? (t('chatGenerating') || 'Generating response...')
+                : (t('chatPlaceholder') || 'Ask ScholarGPT about research papers, methodologies, or data...')
             }
           />
           <div className="flex justify-end px-3 pb-2 pt-2 border-t border-border-cream/50 dark:border-gray-800 mt-2 transition-colors">

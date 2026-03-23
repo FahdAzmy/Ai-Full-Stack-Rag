@@ -19,6 +19,7 @@ from src.controllers.chat_controller import (
     delete_chat,
     rename_chat,
     query_chat,
+    stream_query_chat,
     get_messages,
 )
 from src.helpers.logging_config import get_logger
@@ -146,6 +147,28 @@ async def query_chat_endpoint(
     )
 
 
+@router.post(
+    "/{chat_id}/query/stream",
+    status_code=status.HTTP_200_OK,
+)
+async def stream_query_endpoint(
+    chat_id: str,
+    body: QueryRequest,
+    current_user=Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """
+    Send a research question and get a STREAMED RAG-powered answer.
+    """
+    return await stream_query_chat(
+        chat_id,
+        body.question,
+        body.document_ids,
+        current_user,
+        db,
+    )
+
+
 @router.get(
     "/{chat_id}/messages",
     status_code=status.HTTP_200_OK,
@@ -166,3 +189,4 @@ async def get_messages_endpoint(
     Requires a valid JWT access token.
     """
     return await get_messages(chat_id, current_user, db, limit, before)
+

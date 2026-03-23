@@ -9,7 +9,7 @@ from fastapi import UploadFile, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func
 
-from src.services.ingestion_service import process_document
+from src.tasks.ingestion import process_document_task
 
 from src.models.db_scheams.document import Document
 from src.models.db_scheams.DocumentChunk import DocumentChunk
@@ -181,24 +181,36 @@ async def upload_document(
             detail="Failed to upload file to storage",
         )
 
-    # ── Run ingestion pipeline (SPEC-03) ─────────────────────────────────
-    # Pipeline: uploading → processing → ready/failed
-    # In v1, runs synchronously. In SPEC-08, will run via Celery.
-    await process_document(str(document_id), db)
+    # ── Queue background processing (SPEC-08) ────────────────────────────
+    # Business Rule #2: Don't allow re-processing a document already "processing"
+    if doc.status == "processing":
+        logger.warning("Document %s is already processing, skipping queue.", document_id)
+        return DocumentUploadResponse(
+            id=str(document_id),
+            file_name=original_filename,
+            file_size=file_size,
+            status="processing",
+            message="Document is already being processed.",
+        )
 
-    # Refresh to get latest status after pipeline completes
-    await db.refresh(doc)
+    # Pipeline runs in a Celery worker: uploading → processing → ready/failed
+    # The upload returns immediately with status="processing".
+    process_document_task.delay(str(document_id))
+
+    # Update status in DB so frontend polls see "processing" immediately
+    doc.status = "processing"
+    await db.commit()
 
     # ── Return response ──────────────────────────────────────────────────
     logger.info(
-        "Upload + ingestion complete: doc=%s status=%s", document_id, doc.status
+        "Upload complete, processing queued: doc=%s", document_id
     )
     return DocumentUploadResponse(
         id=str(document_id),
         file_name=original_filename,
         file_size=file_size,
-        status=doc.status,
-        message="Upload successful. Processing started.",
+        status="processing",
+        message="Upload successful. Processing queued.",
     )
 
 

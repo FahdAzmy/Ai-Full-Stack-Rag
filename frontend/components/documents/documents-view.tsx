@@ -7,6 +7,7 @@ import { fetchDocuments } from '@/store/documents/document-actions';
 import { deleteDocument } from '@/store/documents/document-actions';
 import { DocumentUpload } from './document-upload';
 import { DocumentMetadataEdit } from './document-metadata-edit';
+import { setSidebarOpen } from '@/store/chat/chat-slice';
 import { DocumentListItem } from '@/lib/api/documents';
 import { useLanguage } from '@/lib/language-context';
 
@@ -16,6 +17,8 @@ export function DocumentsView() {
   const { documents, loading, total } = useSelector(
     (state: RootState) => state.documents
   );
+  const { sidebarOpen } = useSelector((state: RootState) => state.chat);
+  
   const [editingDoc, setEditingDoc] = useState<DocumentListItem | null>(null);
   const [statusFilter, setStatusFilter] = useState<string | undefined>(undefined);
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
@@ -101,17 +104,25 @@ export function DocumentsView() {
   };
 
   return (
-    <div className="flex-1 overflow-y-auto p-8 chat-scrollbar">
+    <div className="flex-1 overflow-y-auto p-4 md:p-8 chat-scrollbar">
       {/* Page Title & Actions */}
       <div className="flex flex-col gap-6 mb-8">
-        <div className="flex justify-between items-end">
-          <div>
-            <h2 className="text-3xl font-extrabold text-slate-900 dark:text-slate-100 tracking-tight">
-              {t('docLibraryTitle') || 'Document Library'}
-            </h2>
-            <p className="text-slate-500 dark:text-slate-400 mt-1">
-              {t('docLibrarySubtitle') || 'Manage and organize your research papers for AI analysis.'}
-            </p>
+        <div className="flex flex-col md:flex-row justify-between md:items-end gap-4">
+          <div className="flex items-center gap-3">
+            <button 
+              onClick={() => dispatch(setSidebarOpen(!sidebarOpen))}
+              className="p-1 -ml-2 text-slate-500 hover:text-primary dark:text-slate-400 dark:hover:text-emerald-400 transition-colors rounded-md"
+            >
+              <span className="material-symbols-outlined text-[28px]">{sidebarOpen ? 'menu_open' : 'menu'}</span>
+            </button>
+            <div>
+              <h2 className="text-2xl md:text-3xl font-extrabold text-slate-900 dark:text-slate-100 tracking-tight">
+                {t('docLibraryTitle') || 'Document Library'}
+              </h2>
+              <p className="text-sm md:text-base text-slate-500 dark:text-slate-400 mt-1">
+                {t('docLibrarySubtitle') || 'Manage and organize your research papers for AI analysis.'}
+              </p>
+            </div>
           </div>
           <div className="flex gap-3">
             {/* Status filter */}

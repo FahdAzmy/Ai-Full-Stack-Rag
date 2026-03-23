@@ -190,5 +190,22 @@
     "docStatusUploading": "جاري الرفع",
     "docPaginationText": "عرض 1 إلى 5 من 48 مستند",
     "docPaginationPrev": "السابق",
-    "docPaginationNext": "التالي"
+    "docPaginationNext": "التالي",
+    "academicWorkspace": "مساحة العمل الأكاديمية",
+    "chatDocuments": "المستندات ",
+    "untitledChat": "محادثة بدون عنوان",
+    "today": "اليوم",
+    "yesterday": "أمس",
+    "chatMsgCount": "رسائل",
+    "chatEmptyState": "لا توجد محادثات بعد. ابدأ محادثة جديدة!",
+    "chatRename": "إعادة تسمية",
+    "chatConfirmDelete": "انقر للتأكيد",
+    "chatDelete": "حذف",
+    "chatConfiguration": "الإعدادات العامة",
+    "guestUser": "مستخدم زائر",
+    "freePlan": "الخطة المجانية",
+    "theme": "المظهر",
+    "systemTheme": "النظام",
+    "lightTheme": "فاتح",
+    "darkTheme": "داكن"
 }

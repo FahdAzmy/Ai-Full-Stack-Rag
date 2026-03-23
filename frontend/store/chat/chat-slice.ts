@@ -17,6 +17,7 @@ interface ChatState {
   loading: boolean;
   querying: boolean; // true while AI is generating a response
   error: string | null;
+  sidebarOpen: boolean;
 }
 
 const initialState: ChatState = {
@@ -25,6 +26,7 @@ const initialState: ChatState = {
   loading: false,
   querying: false,
   error: null,
+  sidebarOpen: false,
 };
 
 // ── Slice ───────────────────────────────────────────────────────────────────
@@ -36,13 +38,61 @@ const chatSlice = createSlice({
     setActiveChat: (state, action: PayloadAction<ChatDetailResponse | null>) => {
       state.activeChat = action.payload;
     },
-    appendMessage: (state, action: PayloadAction<MessageResponse>) => {
+    appendUserMessage: (state, action: PayloadAction<MessageResponse>) => {
       if (state.activeChat) {
         state.activeChat.messages.push(action.payload);
       }
     },
+    startStreamingMessage: (state, action: PayloadAction<{ sources: any[] | null }>) => {
+      if (state.activeChat) {
+        state.activeChat.messages.push({
+          id: 'streaming',
+          role: 'assistant',
+          content: '',
+          source_chunks: action.payload.sources,
+          created_at: new Date().toISOString(),
+        });
+      }
+      state.querying = true;
+    },
+    appendTokenToStreamingMessage: (state, action: PayloadAction<string>) => {
+      if (state.activeChat) {
+        const lastMsg = state.activeChat.messages[state.activeChat.messages.length - 1];
+        if (lastMsg && lastMsg.role === 'assistant' && lastMsg.id === 'streaming') {
+          lastMsg.content += action.payload;
+        }
+      }
+    },
+    finalizeStreamingMessage: (state, action: PayloadAction<{ id: string; sources: any[] | null; title?: string | null }>) => {
+      if (state.activeChat) {
+        const lastMsg = state.activeChat.messages[state.activeChat.messages.length - 1];
+        if (lastMsg && lastMsg.role === 'assistant' && lastMsg.id === 'streaming') {
+          lastMsg.id = action.payload.id;
+          lastMsg.source_chunks = action.payload.sources;
+        }
+        
+        // Update Title dynamically if provided from the backend
+        if (action.payload.title && state.activeChat.title !== action.payload.title) {
+          state.activeChat.title = action.payload.title;
+          const chatInList = state.chats.find(c => c.id === state.activeChat!.id);
+          if (chatInList) {
+            chatInList.title = action.payload.title;
+          }
+        }
+      }
+      state.querying = false;
+    },
+    setQuerying: (state, action: PayloadAction<boolean>) => {
+      state.querying = action.payload;
+    },
+    setChatError: (state, action: PayloadAction<string>) => {
+      state.error = action.payload;
+    },
     clearChatError: (state) => {
       state.error = null;
+    },
+    setSidebarOpen: (state, action: PayloadAction<boolean>) => {
+      state.sidebarOpen = action.payload;
     },
   },
   extraReducers: (builder) => {
@@ -179,5 +229,16 @@ const chatSlice = createSlice({
   },
 });
 
-export const { setActiveChat, appendMessage, clearChatError } = chatSlice.actions;
+export const {
+  setActiveChat,
+  appendUserMessage,
+  startStreamingMessage,
+  appendTokenToStreamingMessage,
+  finalizeStreamingMessage,
+  setQuerying,
+  setChatError,
+  clearChatError,
+  setSidebarOpen,
+} = chatSlice.actions;
+
 export default chatSlice.reducer;

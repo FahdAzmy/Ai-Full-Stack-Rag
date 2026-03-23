@@ -31,28 +31,42 @@ export function DocumentSidebar({ isOpen, onToggle }: DocumentSidebarProps) {
     dispatch(fetchDocuments(undefined));
   }, [dispatch]);
 
-  // Poll every 5 seconds while any document is 'processing'
-  useEffect(() => {
-    const hasProcessing = documents.some((d) => d.status === 'processing');
+  const hasProcessing = documents.some(
+    (d) => d.status === 'processing' || d.status === 'uploading'
+  );
 
+  // Poll every 5 seconds while any document is 'processing' or 'uploading'
+  useEffect(() => {
     if (hasProcessing && !pollingRef.current) {
       pollingRef.current = setInterval(() => {
         dispatch(fetchDocuments(undefined));
       }, 5000);
-    }
-
-    if (!hasProcessing && pollingRef.current) {
+    } else if (!hasProcessing && pollingRef.current) {
       clearInterval(pollingRef.current);
       pollingRef.current = null;
     }
 
+    // Only clear on complete unmount, not on every re-render
+    return () => {
+      // Cleanup is mostly for unmounting. 
+      // We do NOT clear it here on re-renders while hasProcessing is true
+      // because that would reset the timer every time the documents change!
+      if (!hasProcessing && pollingRef.current) {
+        clearInterval(pollingRef.current);
+        pollingRef.current = null;
+      }
+    };
+  }, [hasProcessing, dispatch]);
+
+  // Make sure we clear the interval if the component fully unmounts
+  useEffect(() => {
     return () => {
       if (pollingRef.current) {
         clearInterval(pollingRef.current);
         pollingRef.current = null;
       }
     };
-  }, [documents, dispatch]);
+  }, []);
 
   const readyCount = documents.filter((d) => d.status === 'ready').length;
 
