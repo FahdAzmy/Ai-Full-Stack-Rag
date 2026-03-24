@@ -8,8 +8,8 @@ import { login } from '@/store/auth/auth-actions';
 import { clearError } from '@/store/auth/auth-slice';
 import { useLanguage } from '@/lib/language-context';
 import { validateEmail, validateLoginPassword, type ValidationErrors } from '@/lib/validation';
-import { Input } from '@/components/ui/input';
-import { Loader2, Mail, Lock, Stethoscope, ShieldCheck, Clock, Zap, AlertCircle } from 'lucide-react';
+import { Mail, Lock } from 'lucide-react';
+import { AuthLogo, AuthAlert, AuthInput, AuthCard, AuthSubmit } from './auth-form-components';
 
 interface LoginPageProps {
   onSignUpClick?: () => void;
@@ -17,7 +17,7 @@ interface LoginPageProps {
 }
 
 export function LoginPage({ onSignUpClick, onForgotPasswordClick }: LoginPageProps) {
-  const { t, isRTL } = useLanguage();
+  const { t } = useLanguage();
   const dispatch = useDispatch<AppDispatch>();
   const router = useRouter();
   const { isLoading, error, isAuthenticated } = useSelector((state: RootState) => state.auth);
@@ -65,57 +65,32 @@ export function LoginPage({ onSignUpClick, onForgotPasswordClick }: LoginPagePro
 
   return (
     <>
-      <div className="w-full max-w-[420px] mb-8 text-center animate-in fade-in slide-in-from-bottom-4 duration-500 hidden md:block">
-        <div className="flex items-center justify-center gap-2 mb-4">
-          <div className="size-10 bg-primary text-primary-foreground flex items-center justify-center rounded-lg shadow-sm">
-            <span className="material-symbols-outlined !text-3xl">auto_stories</span>
-          </div>
-          <h1 className="text-2xl font-bold tracking-tight text-foreground">{t('scholarGpt') || 'ScholarGPT'}</h1>
-        </div>
-      </div>
+      <AuthLogo variant="desktop" />
 
-      <div className="w-full max-w-[420px] bg-card border border-border rounded-xl shadow-[0_10px_25px_-5px_rgba(6,76,57,0.05),0_8px_10px_-6px_rgba(6,76,57,0.05)] p-8 relative z-10 animate-in fade-in slide-in-from-bottom-8 duration-700">
+      <AuthCard>
         <div className="mb-8">
-          {/* Mobile Logo Logo */}
-          <div className="flex items-center gap-2 mb-6 md:hidden">
-            <div className="size-8 bg-primary text-primary-foreground flex items-center justify-center rounded-lg shadow-sm">
-              <span className="material-symbols-outlined !text-2xl">auto_stories</span>
-            </div>
-            <span className="font-bold text-lg text-foreground">{t('scholarGpt') || 'ScholarGPT'}</span>
-          </div>
-          
+          <AuthLogo variant="mobile" />
           <h2 className="text-xl font-bold text-foreground mb-2">{t('welcomeBackTitle')}</h2>
           <p className="text-sm font-medium text-muted-foreground">{t('welcomeBackSub')}</p>
         </div>
 
-        {/* Error Alert */}
-        {error && (
-          <div className="mb-6 p-4 rounded-xl bg-destructive/10 border border-destructive/20 flex items-start gap-3">
-            <AlertCircle className="w-5 h-5 text-destructive flex-shrink-0 mt-0.5" />
-            <p className="text-sm font-medium text-destructive">{t(error)}</p>
-          </div>
-        )}
+        {error && <AuthAlert type="error" message={error} />}
 
         <form onSubmit={handleSubmit} className="space-y-5">
           {/* Email Address */}
           <div className="space-y-1.5">
             <label htmlFor="email" className="block text-sm font-medium text-foreground">{t('email')}</label>
-            <div className="relative">
-              <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-              <input
-                id="email"
-                name="email"
-                type="email"
-                placeholder={t('emailPlaceholder')}
-                value={formData.email}
-                onChange={handleChange}
-                disabled={isLoading}
-                className={`w-full pl-10 pr-4 py-2.5 bg-background border ${validationErrors.email ? 'border-destructive focus:ring-destructive/20 focus:border-destructive' : 'border-input focus:ring-primary/20 focus:border-primary'} text-foreground rounded-xl focus:ring-4 outline-none transition-all placeholder:text-muted-foreground font-medium`}
-              />
-            </div>
-            {validationErrors.email && (
-              <p className="text-xs font-medium text-destructive mt-1.5">{t(validationErrors.email)}</p>
-            )}
+            <AuthInput
+              id="email"
+              name="email"
+              type="email"
+              placeholder={t('emailPlaceholder')}
+              value={formData.email}
+              onChange={handleChange}
+              disabled={isLoading}
+              icon={<Mail className="w-4 h-4" />}
+              error={validationErrors.email}
+            />
           </div>
 
           {/* Password */}
@@ -130,36 +105,23 @@ export function LoginPage({ onSignUpClick, onForgotPasswordClick }: LoginPagePro
                 {t('forgotPassword')}
               </button>
             </div>
-            <div className="relative">
-              <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-              <input
-                id="password"
-                name="password"
-                type="password"
-                placeholder={t('passwordPlaceholder')}
-                value={formData.password}
-                onChange={handleChange}
-                disabled={isLoading}
-                className={`w-full pl-10 pr-10 py-2.5 bg-background border ${validationErrors.password ? 'border-destructive focus:ring-destructive/20 focus:border-destructive' : 'border-input focus:ring-primary/20 focus:border-primary'} text-foreground rounded-xl focus:ring-4 outline-none transition-all placeholder:text-muted-foreground font-medium`}
-              />
-            </div>
-            {validationErrors.password && (
-              <p className="text-xs font-medium text-destructive mt-1.5">{t(validationErrors.password)}</p>
-            )}
+            <AuthInput
+              id="password"
+              name="password"
+              type="password"
+              placeholder={t('passwordPlaceholder')}
+              value={formData.password}
+              onChange={handleChange}
+              disabled={isLoading}
+              icon={<Lock className="w-4 h-4" />}
+              error={validationErrors.password}
+            />
           </div>
 
           {/* Submit Button */}
-          <button 
-            type="submit" 
-            disabled={isLoading} 
-            className="w-full bg-primary hover:bg-primary-light text-primary-foreground font-bold py-3 mt-2 rounded-xl shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2 active:scale-[0.98]"
-          >
-            {isLoading ? (
-              <><Loader2 className="w-5 h-5 animate-spin" /><span>{t('loading')}</span></>
-            ) : (
-              <span>{t('loginButton')}</span>
-            )}
-          </button>
+          <AuthSubmit loading={isLoading}>
+            <span>{t('loginButton')}</span>
+          </AuthSubmit>
         </form>
 
         <div className="mt-8 pt-6 border-t border-border text-center">
@@ -173,7 +135,7 @@ export function LoginPage({ onSignUpClick, onForgotPasswordClick }: LoginPagePro
             </button>
           </p>
         </div>
-      </div>
+      </AuthCard>
 
       <div className="mt-8 flex flex-col items-center gap-4 text-center animate-in fade-in slide-in-from-bottom-8 duration-700 delay-150">
         <div className="flex -space-x-2">

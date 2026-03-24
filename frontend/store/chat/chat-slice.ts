@@ -6,7 +6,6 @@ import {
   fetchChat,
   deleteChat,
   renameChat,
-  sendQuery,
 } from './chat-actions';
 
 // ── State Interface ─────────────────────────────────────────────────────────
@@ -186,46 +185,7 @@ const chatSlice = createSlice({
         state.error = action.payload as string;
       });
 
-    // Send query
-    builder
-      .addCase(sendQuery.pending, (state, action) => {
-        state.querying = true;
-        state.error = null;
-        // Optimistically add the user's message to the active chat
-        if (state.activeChat) {
-          state.activeChat.messages.push({
-            id: `temp-${Date.now()}`,
-            role: 'user',
-            content: action.meta.arg.question,
-            source_chunks: null,
-            created_at: new Date().toISOString(),
-          });
-        }
-      })
-      .addCase(sendQuery.fulfilled, (state, action) => {
-        state.querying = false;
-        const { response } = action.payload;
-        // Add the assistant's response
-        if (state.activeChat) {
-          state.activeChat.messages.push({
-            id: response.message_id,
-            role: 'assistant',
-            content: response.answer,
-            source_chunks: response.sources,
-            created_at: new Date().toISOString(),
-          });
-        }
-        // Update message count in the chat list
-        const chatInList = state.chats.find((c) => c.id === action.payload.chatId);
-        if (chatInList) {
-          chatInList.message_count += 2; // user + assistant
-          chatInList.last_message_at = new Date().toISOString();
-        }
-      })
-      .addCase(sendQuery.rejected, (state, action) => {
-        state.querying = false;
-        state.error = action.payload as string;
-      });
+
   },
 });
 

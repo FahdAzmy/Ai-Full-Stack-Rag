@@ -215,8 +215,8 @@ export function DocumentsView() {
                             </p>
                             <p className="text-xs text-slate-500">
                               {formatFileSize(doc.file_size)}
-                              {doc.total_pages ? ` • ${doc.total_pages} pages` : ''}
-                              {` • Added ${formatDate(doc.created_at)}`}
+                              {doc.total_pages ? ` • ${doc.total_pages} ${t('docPages') || 'pages'}` : ''}
+                              {` • ${t('docAdded') || 'Added'} ${formatDate(doc.created_at)}`}
                             </p>
                           </div>
                         </div>

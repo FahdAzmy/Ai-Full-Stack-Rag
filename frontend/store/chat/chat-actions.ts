@@ -71,22 +71,3 @@ export const renameChat = createAsyncThunk(
   }
 );
 
-// ── Send a query ────────────────────────────────────────────────────────────
-export const sendQuery = createAsyncThunk(
-  'chat/sendQuery',
-  async (
-    {
-      chatId,
-      question,
-      documentIds,
-    }: { chatId: string; question: string; documentIds?: string[] },
-    { rejectWithValue }
-  ) => {
-    try {
-      const response = await chatsApi.query(chatId, question, documentIds);
-      return { chatId, question, response: response.data };
-    } catch (error: any) {
-      return rejectWithValue(error);
-    }
-  }
-);
