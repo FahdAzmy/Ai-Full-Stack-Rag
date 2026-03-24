@@ -17,7 +17,6 @@ type AuthPage = 'login' | 'signup' | 'verify-email' | 'forgot-password';
 
 export function AuthManager() {
   const [currentPage, setCurrentPage] = useState<AuthPage>('login');
-  const [pendingEmail, setPendingEmail] = useState<string>('');
   const { isRTL } = useLanguage();
   const { isAuthenticated, isInitialized } = useSelector((state: RootState) => state.auth);
   const router = useRouter();

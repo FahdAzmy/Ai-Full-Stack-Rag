@@ -28,13 +28,13 @@ export function DocumentUpload() {
 
       // Validate file type
       if (file.type !== 'application/pdf' && !file.name.toLowerCase().endsWith('.pdf')) {
-        setLocalError('Only PDF files are accepted');
+        setLocalError(t('docErrFileType') || 'Only PDF files are accepted');
         return;
       }
 
       // Validate file size
       if (file.size > MAX_FILE_SIZE) {
-        setLocalError('File size exceeds 50MB limit');
+        setLocalError(t('docErrFileSize') || 'File size exceeds 50MB limit');
         return;
       }
 

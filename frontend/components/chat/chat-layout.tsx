@@ -1,25 +1,30 @@
 'use client';
 
-import { useRef, useEffect, useState } from 'react';
+import React, { useRef, useEffect, memo, useMemo } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { RootState, AppDispatch } from '@/store/store';
 import { setSidebarOpen } from '@/store/chat/chat-slice';
 import { ChatMessages } from './chat-messages';
 import { ChatInput } from './chat-input';
-import { DocumentSidebar } from '@/components/documents/document-sidebar';
 import { useLanguage } from '@/lib/language-context';
+import { SectionErrorBoundary } from '@/components/error-boundary';
 
-export function ChatLayout() {
+export const ChatLayout = memo(function ChatLayout() {
   const { t } = useLanguage();
   const dispatch = useDispatch<AppDispatch>();
   const { activeChat, querying, loading, sidebarOpen } = useSelector((state: RootState) => state.chat);
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const [docSidebarOpen, setDocSidebarOpen] = useState(true);
+
+  // Memoize messages array reference to avoid unnecessary re-renders
+  const messages = useMemo(
+    () => activeChat?.messages || [],
+    [activeChat?.messages],
+  );
 
   // Auto-scroll to bottom when messages change or when querying starts/stops
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [activeChat?.messages, querying]);
+  }, [messages, querying]);
 
   const chatTitle = activeChat?.title || t('chatUntitled') || 'New Chat';
 
@@ -32,30 +37,35 @@ export function ChatLayout() {
           <div className="flex items-center gap-4 min-w-0">
             <button 
               onClick={() => dispatch(setSidebarOpen(!sidebarOpen))}
+              aria-expanded={sidebarOpen}
+              aria-label={sidebarOpen ? 'Close sidebar' : 'Open sidebar'}
               className="p-1 -ml-2 text-primary/60 dark:text-emerald-500/60 hover:text-primary dark:hover:text-emerald-400 transition-colors rounded-md"
             >
-              <span className="material-symbols-outlined">{sidebarOpen ? 'menu_open' : 'menu'}</span>
+              <span className="material-symbols-outlined" aria-hidden="true">
+                {sidebarOpen ? 'menu_open' : 'menu'}
+              </span>
             </button>
             <h2 className="text-sm font-semibold text-primary dark:text-emerald-400 truncate">
-              {activeChat ? chatTitle : (t('chatWelcome') || 'Welcome to ScholarGPT')}
+              {activeChat ? chatTitle : (t('chatWelcome') || 'Welcome to AskAnyDoc')}
             </h2>
           </div>
-
-          
         </header>
 
         {/* Chat Area */}
-        <ChatMessages
-          messages={activeChat?.messages || []}
-          isTyping={querying}
-          messagesEndRef={messagesEndRef}
-          loading={loading && !activeChat}
-        />
+        <SectionErrorBoundary section="Chat Messages">
+          <ChatMessages
+            messages={messages}
+            isTyping={querying}
+            messagesEndRef={messagesEndRef}
+            loading={loading && !activeChat}
+          />
+        </SectionErrorBoundary>
 
         {/* Input Area */}
-        <ChatInput />
+        <SectionErrorBoundary section="Chat Input">
+          <ChatInput />
+        </SectionErrorBoundary>
       </div>
-
     </div>
   );
-}
+});

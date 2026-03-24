@@ -126,7 +126,7 @@ export function DocumentItem({
         <p className="text-xs text-slate-500 dark:text-slate-400">
           {[
             formatFileSize(doc.file_size),
-            doc.total_pages ? `${doc.total_pages} pages` : null,
+            doc.total_pages ? `${doc.total_pages} ${t('docPages') || 'pages'}` : null,
             formatDate(doc.created_at),
           ]
             .filter(Boolean)

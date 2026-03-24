@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import React, { useState, useCallback, memo } from 'react';
 import type { SourceChunk } from '@/lib/api/chats';
 import { CitationBlock } from './citation-block';
 import { useLanguage } from '@/lib/language-context';
@@ -9,14 +9,22 @@ interface SourcesPanelProps {
   sources: SourceChunk[];
 }
 
-export function SourcesPanel({ sources }: SourcesPanelProps) {
+export const SourcesPanel = memo(function SourcesPanel({ sources }: SourcesPanelProps) {
   const { t } = useLanguage();
   const [expandedSource, setExpandedSource] = useState<number | null>(null);
+
+  const toggleSource = useCallback((sourceNumber: number) => {
+    setExpandedSource(prev => prev === sourceNumber ? null : sourceNumber);
+  }, []);
 
   if (!sources || sources.length === 0) return null;
 
   return (
-    <div className="mt-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/30 overflow-hidden animate-in slide-in-from-top-2 fade-in duration-200">
+    <div
+      className="mt-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/30 overflow-hidden animate-in slide-in-from-top-2 fade-in duration-200"
+      role="region"
+      aria-label={`${sources.length} source references`}
+    >
       {/* Header */}
       <div className="px-4 py-2.5 bg-slate-100/80 dark:bg-slate-800/60 border-b border-slate-200 dark:border-slate-700">
         <p className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
@@ -25,28 +33,29 @@ export function SourcesPanel({ sources }: SourcesPanelProps) {
       </div>
 
       {/* Source list */}
-      <div className="divide-y divide-slate-200 dark:divide-slate-700/50">
+      <div className="divide-y divide-slate-200 dark:divide-slate-700/50" role="list">
         {sources.map((source) => {
           const isExpanded = expandedSource === source.source_number;
+          const sourceTitle = source.title || source.file_name || 'Untitled Source';
 
           return (
-            <div key={source.source_number} className="group">
+            <div key={source.source_number} className="group" role="listitem">
               {/* Source header (clickable) */}
               <button
-                onClick={() =>
-                  setExpandedSource(isExpanded ? null : source.source_number)
-                }
+                onClick={() => toggleSource(source.source_number)}
+                aria-expanded={isExpanded}
+                aria-label={`Source ${source.source_number}: ${sourceTitle}`}
                 className="w-full px-4 py-3 flex items-start gap-3 text-start hover:bg-slate-100/50 dark:hover:bg-slate-800/40 transition-colors"
               >
                 {/* Source number badge */}
-                <span className="shrink-0 w-6 h-6 rounded-full bg-primary/10 text-primary text-xs font-bold flex items-center justify-center mt-0.5">
+                <span className="shrink-0 w-6 h-6 rounded-full bg-primary/10 text-primary text-xs font-bold flex items-center justify-center mt-0.5" aria-hidden="true">
                   {source.source_number}
                 </span>
 
                 {/* Source info */}
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-semibold text-slate-900 dark:text-slate-100 truncate">
-                    {source.title || source.file_name || 'Untitled Source'}
+                    {sourceTitle}
                   </p>
                   <div className="flex items-center gap-2 mt-0.5 flex-wrap">
                     {source.author && (
@@ -69,8 +78,8 @@ export function SourcesPanel({ sources }: SourcesPanelProps) {
 
                 {/* Relevance score */}
                 {source.similarity != null && (
-                  <div className="shrink-0 flex items-center gap-1.5">
-                    <div className="w-12 h-1.5 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
+                  <div className="shrink-0 flex items-center gap-1.5" aria-label={`${Math.round(source.similarity * 100)}% relevance`}>
+                    <div className="w-12 h-1.5 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden" aria-hidden="true">
                       <div
                         className="h-full bg-primary rounded-full"
                         style={{ width: `${Math.round(source.similarity * 100)}%` }}
@@ -87,6 +96,7 @@ export function SourcesPanel({ sources }: SourcesPanelProps) {
                   className={`material-symbols-outlined text-lg text-slate-400 shrink-0 transition-transform ${
                     isExpanded ? 'rotate-180' : ''
                   }`}
+                  aria-hidden="true"
                 >
                   expand_more
                 </span>
@@ -122,4 +132,4 @@ export function SourcesPanel({ sources }: SourcesPanelProps) {
       </div>
     </div>
   );
-}
+});

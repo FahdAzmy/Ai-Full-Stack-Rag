@@ -7,7 +7,8 @@ import { forgotPassword, resetPassword } from '@/store/auth/auth-actions';
 import { clearError, clearSuccess } from '@/store/auth/auth-slice';
 import { useLanguage } from '@/lib/language-context';
 import { validateEmail, validatePassword, validateVerificationCode, validatePasswordMatch, type ValidationErrors } from '@/lib/validation';
-import { Loader2, ArrowRight, Mail, Lock, ArrowLeft, Stethoscope, ShieldCheck, Clock, Zap, AlertCircle, CheckCircle2 } from 'lucide-react';
+import { ArrowRight, Mail, Lock, ArrowLeft } from 'lucide-react';
+import { AuthLogo, AuthAlert, AuthInput, AuthCard, AuthSubmit } from './auth-form-components';
 
 interface ForgotPasswordPageProps {
   onSuccess?: () => void;
@@ -15,7 +16,7 @@ interface ForgotPasswordPageProps {
 }
 
 export function ForgotPasswordPage({ onSuccess, onBackClick }: ForgotPasswordPageProps) {
-  const { t, isRTL } = useLanguage();
+  const { t } = useLanguage();
   const dispatch = useDispatch<AppDispatch>();
   const { isLoading, error, successMessage } = useSelector((state: RootState) => state.auth);
 
@@ -104,24 +105,10 @@ export function ForgotPasswordPage({ onSuccess, onBackClick }: ForgotPasswordPag
 
   return (
     <>
-      <div className="w-full max-w-[420px] mb-8 text-center animate-in fade-in slide-in-from-bottom-4 duration-500 hidden md:block">
-        <div className="flex items-center justify-center gap-2 mb-4">
-          <div className="size-10 bg-primary text-primary-foreground flex items-center justify-center rounded-lg shadow-sm">
-            <span className="material-symbols-outlined !text-3xl">auto_stories</span>
-          </div>
-          <h1 className="text-2xl font-bold tracking-tight text-foreground">{t('scholarGpt') || 'ScholarGPT'}</h1>
-        </div>
-      </div>
+      <AuthLogo variant="desktop" />
 
-      <div className="w-full max-w-[420px] mb-8 bg-card border border-border rounded-xl shadow-[0_10px_25px_-5px_rgba(6,76,57,0.05),0_8px_10px_-6px_rgba(6,76,57,0.05)] p-8 relative z-10 animate-in fade-in slide-in-from-bottom-8 duration-700">
-        
-        {/* Mobile Logo Logo */}
-        <div className="flex items-center gap-2 mb-6 md:hidden">
-          <div className="size-8 bg-primary text-primary-foreground flex items-center justify-center rounded-lg shadow-sm">
-            <span className="material-symbols-outlined !text-2xl">auto_stories</span>
-          </div>
-          <span className="font-bold text-lg text-foreground">{t('scholarGpt') || 'ScholarGPT'}</span>
-        </div>
+      <AuthCard>
+        <AuthLogo variant="mobile" />
 
         {/* Header */}
         <div className="mb-6">
@@ -136,49 +123,30 @@ export function ForgotPasswordPage({ onSuccess, onBackClick }: ForgotPasswordPag
           </p>
         </div>
 
-        {/* Alerts */}
-        {error && (
-          <div className="mb-6 p-4 rounded-xl bg-destructive/10 border border-destructive/20 flex items-start gap-3">
-            <AlertCircle className="w-5 h-5 text-destructive flex-shrink-0 mt-0.5" />
-            <p className="text-sm font-medium text-destructive">{t(error)}</p>
-          </div>
-        )}
-        {successMessage && (
-          <div className="mb-6 p-4 rounded-xl bg-primary/10 border border-primary/20 flex items-start gap-3">
-            <CheckCircle2 className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />
-            <p className="text-sm font-medium text-primary">{t(successMessage)}</p>
-          </div>
-        )}
+        {error && <AuthAlert type="error" message={error} />}
+        {successMessage && <AuthAlert type="success" message={successMessage} />}
 
         {/* ── Step 1: Email ── */}
         {step === 'email' ? (
           <form onSubmit={handleEmailSubmit} className="space-y-4">
             <div className="space-y-1.5">
               <label htmlFor="email" className="block text-sm font-medium text-foreground">{t('email')}</label>
-              <div className="relative">
-                <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                <input
-                  id="email"
-                  type="email"
-                  placeholder={t('emailPlaceholder')}
-                  value={email}
-                  onChange={(e) => handleInputChange(e, 'email')}
-                  disabled={isLoading}
-                  className={`w-full pl-10 pr-4 py-2.5 bg-background border ${validationErrors.email ? 'border-destructive focus:ring-destructive/20 focus:border-destructive' : 'border-input focus:ring-primary/20 focus:border-primary'} text-foreground rounded-xl focus:ring-4 outline-none transition-all placeholder:text-muted-foreground font-medium`}
-                />
-              </div>
-              {validationErrors.email && (
-                <p className="text-xs font-medium text-destructive mt-1.5">{t(validationErrors.email)}</p>
-              )}
+              <AuthInput
+                id="email"
+                type="email"
+                placeholder={t('emailPlaceholder')}
+                value={email}
+                onChange={(e) => handleInputChange(e, 'email')}
+                disabled={isLoading}
+                icon={<Mail className="w-4 h-4" />}
+                error={validationErrors.email}
+              />
             </div>
 
-            <button type="submit" disabled={isLoading} className="w-full bg-primary hover:bg-primary-light text-primary-foreground font-bold py-3 mt-4 rounded-xl shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2 active:scale-[0.98]">
-              {isLoading ? (
-                <><Loader2 className="w-5 h-5 animate-spin" /><span>{t('loading')}</span></>
-              ) : (
-                <><span>{t('forgotPasswordButton')}</span><ArrowRight className="w-4 h-4" /></>
-              )}
-            </button>
+            <AuthSubmit loading={isLoading} className="mt-4">
+              <span>{t('forgotPasswordButton')}</span>
+              <ArrowRight className="w-4 h-4" />
+            </AuthSubmit>
 
             <button type="button" onClick={onBackClick} disabled={isLoading} className="w-full bg-transparent hover:bg-muted text-foreground font-bold py-3 rounded-xl flex items-center justify-center gap-2 transition-all border border-border mt-3">
               <ArrowLeft className="w-4 h-4" />
@@ -189,11 +157,10 @@ export function ForgotPasswordPage({ onSuccess, onBackClick }: ForgotPasswordPag
         ) : (
           /* ── Step 2: Reset ── */
           <form onSubmit={handleResetSubmit} className="space-y-4">
-
             {/* Code */}
             <div className="space-y-1.5">
               <label htmlFor="code" className="block text-sm font-medium text-foreground">{t('verificationCode')}</label>
-              <input
+              <AuthInput
                 id="code"
                 type="text"
                 placeholder={t('verificationCodePlaceholder')}
@@ -201,60 +168,45 @@ export function ForgotPasswordPage({ onSuccess, onBackClick }: ForgotPasswordPag
                 onChange={handleCodeChange}
                 disabled={isLoading}
                 maxLength={6}
-                className={`w-full py-2.5 bg-background border ${validationErrors.code ? 'border-destructive focus:ring-destructive/20 focus:border-destructive' : 'border-input focus:ring-primary/20 focus:border-primary'} text-foreground rounded-xl focus:ring-4 outline-none transition-all placeholder:text-muted-foreground font-mono text-center text-xl tracking-[0.5em] font-bold shadow-sm`}
+                codeStyle
+                error={validationErrors.code}
               />
-              {validationErrors.code && (
-                <p className="text-xs font-medium text-destructive mt-1.5 text-center">{t(validationErrors.code)}</p>
-              )}
             </div>
 
             {/* New Password */}
             <div className="space-y-1.5">
               <label htmlFor="newPassword" className="block text-sm font-medium text-foreground">{t('newPassword')}</label>
-              <div className="relative">
-                <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                <input
-                  id="newPassword"
-                  type="password"
-                  placeholder={t('newPasswordPlaceholder')}
-                  value={newPassword}
-                  onChange={(e) => handleInputChange(e, 'newPassword')}
-                  disabled={isLoading}
-                  className={`w-full pl-10 pr-4 py-2.5 bg-background border ${validationErrors.newPassword ? 'border-destructive focus:ring-destructive/20 focus:border-destructive' : 'border-input focus:ring-primary/20 focus:border-primary'} text-foreground rounded-xl focus:ring-4 outline-none transition-all placeholder:text-muted-foreground font-medium`}
-                />
-              </div>
-              {validationErrors.newPassword && (
-                <p className="text-xs font-medium text-destructive mt-1.5">{t(validationErrors.newPassword)}</p>
-              )}
+              <AuthInput
+                id="newPassword"
+                type="password"
+                placeholder={t('newPasswordPlaceholder')}
+                value={newPassword}
+                onChange={(e) => handleInputChange(e, 'newPassword')}
+                disabled={isLoading}
+                icon={<Lock className="w-4 h-4" />}
+                error={validationErrors.newPassword}
+              />
             </div>
 
             {/* Confirm Password */}
             <div className="space-y-1.5">
               <label htmlFor="confirmPassword" className="block text-sm font-medium text-foreground">{t('confirmPassword')}</label>
-              <div className="relative">
-                <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                <input
-                  id="confirmPassword"
-                  type="password"
-                  placeholder={t('confirmPasswordPlaceholder')}
-                  value={confirmPassword}
-                  onChange={(e) => handleInputChange(e, 'confirmPassword')}
-                  disabled={isLoading}
-                  className={`w-full pl-10 pr-4 py-2.5 bg-background border ${validationErrors.confirmPassword ? 'border-destructive focus:ring-destructive/20 focus:border-destructive' : 'border-input focus:ring-primary/20 focus:border-primary'} text-foreground rounded-xl focus:ring-4 outline-none transition-all placeholder:text-muted-foreground font-medium`}
-                />
-              </div>
-              {validationErrors.confirmPassword && (
-                <p className="text-xs font-medium text-destructive mt-1.5">{t(validationErrors.confirmPassword)}</p>
-              )}
+              <AuthInput
+                id="confirmPassword"
+                type="password"
+                placeholder={t('confirmPasswordPlaceholder')}
+                value={confirmPassword}
+                onChange={(e) => handleInputChange(e, 'confirmPassword')}
+                disabled={isLoading}
+                icon={<Lock className="w-4 h-4" />}
+                error={validationErrors.confirmPassword}
+              />
             </div>
 
-            <button type="submit" disabled={isLoading} className="w-full bg-primary hover:bg-primary-light text-primary-foreground font-bold py-3 mt-4 rounded-xl shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2 active:scale-[0.98]">
-              {isLoading ? (
-                <><Loader2 className="w-5 h-5 animate-spin" /><span>{t('loading')}</span></>
-              ) : (
-                <><span>{t('resetPasswordButton')}</span><ArrowRight className="w-4 h-4" /></>
-              )}
-            </button>
+            <AuthSubmit loading={isLoading} className="mt-4">
+              <span>{t('resetPasswordButton')}</span>
+              <ArrowRight className="w-4 h-4" />
+            </AuthSubmit>
 
             <button type="button" onClick={onBackClick} disabled={isLoading} className="w-full bg-transparent hover:bg-muted text-foreground font-bold py-3 rounded-xl flex items-center justify-center gap-2 transition-all border border-border mt-3">
               <ArrowLeft className="w-4 h-4" />
@@ -262,7 +214,7 @@ export function ForgotPasswordPage({ onSuccess, onBackClick }: ForgotPasswordPag
             </button>
           </form>
         )}
-      </div>
+      </AuthCard>
     </>
   );
 }

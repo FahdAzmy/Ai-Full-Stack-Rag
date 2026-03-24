@@ -42,7 +42,7 @@ export function validateFullName(name: string): string | null {
   if (trimmedName.length < 2) return 'nameTooShort';
   if (trimmedName.length > 100) return 'nameTooLong';
   
-  if (!/^[a-zA-Z\s\-']+$/.test(trimmedName)) return 'nameInvalid';
+  if (!/^[\p{L}\s\-']+$/u.test(trimmedName)) return 'nameInvalid';
   
   return null;
 }

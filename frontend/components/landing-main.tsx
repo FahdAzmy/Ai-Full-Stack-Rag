@@ -30,18 +30,18 @@ export function LandingMain() {
             </div>
             
             <div className="flex flex-wrap gap-4">
-              <button className="flex min-w-[180px] cursor-pointer items-center justify-center rounded-xl h-14 px-8 bg-primary text-primary-foreground text-lg font-bold shadow-[0_8px_30px_rgb(6,78,59,0.2)] hover:bg-primary-light hover:shadow-[0_8px_30px_rgb(6,78,59,0.3)] hover:-translate-y-0.5 transition-all active:scale-95 duration-300">
+              {/* <button className="flex min-w-[180px] cursor-pointer items-center justify-center rounded-xl h-14 px-8 bg-primary text-primary-foreground text-lg font-bold shadow-[0_8px_30px_rgb(6,78,59,0.2)] hover:bg-primary-light hover:shadow-[0_8px_30px_rgb(6,78,59,0.3)] hover:-translate-y-0.5 transition-all active:scale-95 duration-300">
                 {t('heroPrimaryBtn')}
-              </button>
-              <button className="flex min-w-[180px] cursor-pointer items-center justify-center rounded-xl h-14 px-8 bg-transparent backdrop-blur-sm border-2 border-primary/20 text-foreground text-lg font-bold hover:bg-primary/5 hover:border-primary/40 transition-all hover:-translate-y-0.5 active:scale-95 duration-300">
+              </button> */}
+              {/* <button className="flex min-w-[180px] cursor-pointer items-center justify-center rounded-xl h-14 px-8 bg-transparent backdrop-blur-sm border-2 border-primary/20 text-foreground text-lg font-bold hover:bg-primary/5 hover:border-primary/40 transition-all hover:-translate-y-0.5 active:scale-95 duration-300">
                 {t('heroSecondaryBtn')}
-              </button>
+              </button> */}
             </div>
 
-            <div className="flex items-center gap-3 text-muted-foreground pt-2">
+            {/* <div className="flex items-center gap-3 text-muted-foreground pt-2">
               <span className="material-symbols-outlined text-primary text-xl">verified_user</span>
               <span className="text-sm font-medium">{t('heroTrust')}</span>
-            </div>
+            </div> */}
           </div>
 
           {/* Right Image Column */}
@@ -153,9 +153,9 @@ export function LandingMain() {
                 <span className="font-medium text-primary-foreground/90">{t('interfaceFeature2')}</span>
               </div>
             </div>
-            <button className="flex w-fit cursor-pointer items-center justify-center rounded-xl h-12 px-8 bg-background text-primary text-sm font-bold mt-6 hover:bg-white hover:-translate-y-1 transition-all active:scale-95 shadow-lg">
+            {/* <button className="flex w-fit cursor-pointer items-center justify-center rounded-xl h-12 px-8 bg-background text-primary text-sm font-bold mt-6 hover:bg-white hover:-translate-y-1 transition-all active:scale-95 shadow-lg">
               {t('interfaceBtn')}
-            </button>
+            </button> */}
           </div>
 
         </div>

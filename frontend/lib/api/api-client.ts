@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { getAccessToken } from '@/lib/axios';
+import { attachAuthInterceptors } from '@/lib/token-refresh';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
 
@@ -16,39 +16,7 @@ const apiClient = axios.create({
   withCredentials: true,
 });
 
-// Attach Bearer token from in-memory storage
-apiClient.interceptors.request.use(
-  (config) => {
-    const token = getAccessToken();
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
-    return config;
-  },
-  (error) => Promise.reject(error)
-);
-
-// Normalize error responses
-apiClient.interceptors.response.use(
-  (response) => response,
-  (error) => {
-    let message = 'An error occurred';
-
-    if (error.response?.data?.detail) {
-      const detail = error.response.data.detail;
-      if (Array.isArray(detail)) {
-        message = detail.map((err: any) => err.msg || 'Invalid input').join(', ');
-      } else if (typeof detail === 'string') {
-        message = detail;
-      } else if (typeof detail === 'object' && detail.code) {
-        message = detail.code;
-      }
-    } else if (error.message) {
-      message = error.message;
-    }
-
-    return Promise.reject(message);
-  }
-);
+// Attach the shared auth + refresh interceptors
+attachAuthInterceptors(apiClient);
 
 export default apiClient;
