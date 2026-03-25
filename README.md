@@ -1,4 +1,4 @@
-# AskAnyDoc (formerly ScholarGPT)
+# AskAnyDoc 
 
 🎥 **[Watch Project Video / Demo](https://drive.google.com/file/d/1orYzEReiFCX4dnPMEahfZVs3BgNinJ5F/view?usp=sharing)**
 
