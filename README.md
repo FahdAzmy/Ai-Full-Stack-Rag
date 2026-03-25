@@ -1,6 +1,32 @@
 # AskAnyDoc (formerly ScholarGPT)
 
+🎥 **[Watch Project Video / Demo](https://drive.google.com/file/d/1orYzEReiFCX4dnPMEahfZVs3BgNinJ5F/view?usp=sharing)**
+
 **AskAnyDoc** is an intelligent, full-stack Academic Research Assistant and Retrieval-Augmented Generation (RAG) platform. It allows users to upload PDF research papers and intuitively chat with them—receiving precise answers backed by exact source attribution and publication-ready citations (APA, MLA, BibTeX).
+
+---
+
+## 📸 Application Preview
+
+### 1. Landing Page
+The landing page introduces **AskAnyDoc** with a clean, professional aesthetic. It clearly highlights the core value proposition: turning research papers into an interactive AI assistant, and offers an easy starting point for users through the "Get Started" call-to-action.
+![Landing Page](screenshots/landing.png)
+
+### 2. Sign Up (Create Account)
+A streamlined and secure registration page where new users can create an account. This page ensures that everyone's workspace and uploaded documents remain strictly isolated using JWT-based authentication.
+![Sign Up](screenshots/signup.png)
+
+### 3. Sign In (Welcome Back)
+A minimalist login interface welcoming returning users to their accounts. It provides standard fields for email and password authentication, complete with helpful links like "Forgot Password?".
+![Sign In](screenshots/signin.png)
+
+### 4. Document Library
+The core document management dashboard. Here, users can easily drag-and-drop research papers (PDFs) to be uploaded, parsed, and embedded asynchronously. It lists uploaded documents with key metadata such as Title, Authors, Year, and processing Status (e.g., *Ready*).
+![Document Library](screenshots/document-library.png)
+
+### 5. Document Chat Interface
+An intuitive messaging interface dedicated to a specific document or conversation. Users can interact strictly with the contextual knowledge of their uploaded files. The AI provides coherent responses alongside direct citations and source references from the underlying research materials.
+![Chat Interface](screenshots/chat.png)
 
 ---
 
