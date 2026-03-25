@@ -21,7 +21,9 @@ from src.models.db_scheams.document import Document
 # ── Helpers ──────────────────────────────────────────────────────────────────
 
 
-async def create_verified_user(db_session: AsyncSession, email: str = "docuser@example.com") -> User:
+async def create_verified_user(
+    db_session: AsyncSession, email: str = "docuser@example.com"
+) -> User:
     """Create a verified user in the DB and return the User object."""
     user = User(
         email=email,
@@ -64,7 +66,13 @@ def make_upload_file(filename: str = "paper.pdf", content: bytes | None = None):
 def make_docx_upload():
     """Return a .docx file upload (invalid type)."""
     content = b"PK\x03\x04 fake docx"
-    return {"file": ("report.docx", io.BytesIO(content), "application/vnd.openxmlformats-officedocument.wordprocessingml.document")}
+    return {
+        "file": (
+            "report.docx",
+            io.BytesIO(content),
+            "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        )
+    }
 
 
 async def create_document_in_db(
@@ -109,7 +117,9 @@ def mock_storage():
         # delete returns None (success)
         mock.delete = MagicMock(return_value=None)
         # create_signed_url returns a fake URL
-        mock.create_signed_url = MagicMock(return_value="https://storage.supabase.co/signed/documents/fake")
+        mock.create_signed_url = MagicMock(
+            return_value="https://storage.supabase.co/signed/documents/fake"
+        )
         yield mock
 
 
@@ -124,20 +134,26 @@ def mock_storage_upload_failure():
 @pytest.fixture(autouse=True)
 def mock_ingestion_pipeline():
     """Mock process_document to prevent full extraction during upload tests.
-    
+
     This simulates an asynchronous pipeline kicking off by just setting
-    the status to "processing" (which the tests expect), avoiding 
+    the status to "processing" (which the tests expect), avoiding
     the real Supabase download calls and heavy PyMuPDF parsing.
     """
+
     async def mock_process(doc_id: str, db: AsyncSession):
         from sqlalchemy import select
-        result = await db.execute(select(Document).where(Document.id == uuid.UUID(doc_id)))
+
+        result = await db.execute(
+            select(Document).where(Document.id == uuid.UUID(doc_id))
+        )
         doc = result.scalar_one_or_none()
         if doc:
             doc.status = "processing"
             await db.commit()
-            
-    with patch("src.controllers.document_controller.process_document", side_effect=mock_process) as mock:
+
+    with patch(
+        "src.controllers.document_controller.process_document", side_effect=mock_process
+    ) as mock:
         yield mock
 
 
@@ -268,7 +284,9 @@ class TestDocumentUpload:
 
         assert response.status_code == 400
         data = response.json()
-        assert "too large" in data["detail"].lower() or "maximum" in data["detail"].lower()
+        assert (
+            "too large" in data["detail"].lower() or "maximum" in data["detail"].lower()
+        )
 
         # Verify storage was NOT called
         mock_storage.upload.assert_not_called()
@@ -299,9 +317,7 @@ class TestDocumentUpload:
     # ── Scenario #5: Upload without auth ─────────────────────────────────
 
     @pytest.mark.asyncio
-    async def test_upload_without_auth_token(
-        self, client: AsyncClient, mock_storage
-    ):
+    async def test_upload_without_auth_token(self, client: AsyncClient, mock_storage):
         """Scenario #5: Upload without auth token → 401/403."""
         files = make_upload_file("paper.pdf")
 
@@ -406,7 +422,9 @@ class TestListDocuments:
 
         await create_document_in_db(db_session, user, "ready_1.pdf", status="ready")
         await create_document_in_db(db_session, user, "ready_2.pdf", status="ready")
-        await create_document_in_db(db_session, user, "processing.pdf", status="processing")
+        await create_document_in_db(
+            db_session, user, "processing.pdf", status="processing"
+        )
 
         response = await client.get(
             "/documents/?status=ready",
@@ -502,7 +520,10 @@ class TestGetDocument:
 
         assert response.status_code == 403
         data = response.json()
-        assert "access denied" in data["detail"].lower() or "denied" in data["detail"].lower()
+        assert (
+            "access denied" in data["detail"].lower()
+            or "denied" in data["detail"].lower()
+        )
 
     # ── Scenario #10: Get non-existent document ──────────────────────────
 
@@ -671,9 +692,7 @@ class TestDeleteDocument:
         assert "deleted" in data["message"].lower()
 
         # Verify DB record was deleted
-        result = await db_session.execute(
-            select(Document).where(Document.id == doc_id)
-        )
+        result = await db_session.execute(select(Document).where(Document.id == doc_id))
         assert result.scalar_one_or_none() is None
 
         # Verify storage.delete was called
@@ -715,9 +734,7 @@ class TestDeleteDocument:
         assert response.status_code == 403
 
         # Verify document was NOT deleted from DB
-        result = await db_session.execute(
-            select(Document).where(Document.id == doc.id)
-        )
+        result = await db_session.execute(select(Document).where(Document.id == doc.id))
         assert result.scalar_one_or_none() is not None
 
     @pytest.mark.asyncio
@@ -752,7 +769,5 @@ class TestDeleteDocument:
         assert response.status_code == 200
 
         # DB record should be gone
-        result = await db_session.execute(
-            select(Document).where(Document.id == doc_id)
-        )
+        result = await db_session.execute(select(Document).where(Document.id == doc_id))
         assert result.scalar_one_or_none() is None

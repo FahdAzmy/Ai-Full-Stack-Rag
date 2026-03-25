@@ -5,6 +5,7 @@ Uses cosine distance (<=> operator) to find the most relevant chunks
 for a given query. All queries are scoped to the authenticated user's
 documents to ensure data isolation.
 """
+
 import uuid as uuid_mod
 from typing import Callable
 

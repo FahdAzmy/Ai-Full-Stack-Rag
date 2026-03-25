@@ -126,16 +126,21 @@ export function DocumentsView() {
           </div>
           <div className="flex gap-3">
             {/* Status filter */}
-            <select
-              value={statusFilter || ''}
-              onChange={(e) => setStatusFilter(e.target.value || undefined)}
-              className="px-3 py-2 border border-slate-200 dark:border-slate-700 rounded-lg text-sm font-semibold bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 outline-none focus:ring-2 focus:ring-primary/20"
-            >
-              <option value="">{t('docFilterAll') || 'All Status'}</option>
-              <option value="ready">{t('docStatusReady') || 'Ready'}</option>
-              <option value="processing">{t('docStatusProcessing') || 'Processing'}</option>
-              <option value="failed">{t('docStatusFailed') || 'Failed'}</option>
-            </select>
+            <div className="relative group">
+              <select
+                value={statusFilter || ''}
+                onChange={(e) => setStatusFilter(e.target.value || undefined)}
+                className="appearance-none ltr:pl-4 ltr:pr-10 rtl:pr-4 rtl:pl-10 py-2.5 border border-slate-200 dark:border-slate-700/80 rounded-xl text-sm font-semibold bg-white dark:bg-slate-800/80 text-slate-700 dark:text-slate-200 hover:border-slate-300 dark:hover:border-slate-600 transition-all focus:outline-none focus:ring-2 focus:ring-primary/30 cursor-pointer shadow-sm group-hover:shadow-md backdrop-blur-sm"
+              >
+                <option value="">{t('docFilterAll') || 'All Status'}</option>
+                <option value="ready">{t('docStatusReady') || 'Ready'}</option>
+                <option value="processing">{t('docStatusProcessing') || 'Processing'}</option>
+                <option value="failed">{t('docStatusFailed') || 'Failed'}</option>
+              </select>
+              <div className="absolute inset-y-0 ltr:right-0 rtl:left-0 flex items-center ltr:pr-3 rtl:pl-3 pointer-events-none text-slate-400 dark:text-slate-500 group-hover:text-slate-600 dark:group-hover:text-slate-300 transition-colors">
+                <span className="material-symbols-outlined text-[22px]">keyboard_arrow_down</span>
+              </div>
+            </div>
           </div>
         </div>
 
